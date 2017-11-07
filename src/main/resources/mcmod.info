@@ -1,0 +1,18 @@
+[
+{
+  "modid": "botaunomy",
+  "name": "Botaunomy",
+  "description": "A Botania addon focused on automation tweaks.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/oneandonlyflexo/botaunomy",
+  "updateUrl": "",
+  "authorList": ["oneandonlyflexo"],
+  "credits": "The Forge team of course. Vazkii for Botania!.",
+  "logoFile": "assets/botaunomy/logo.png",
+  "screenshots": [],
+  "requiredMods": ["botania"],
+  "dependencies": ["botania"],
+  "useDependencyInformation": true
+}
+]

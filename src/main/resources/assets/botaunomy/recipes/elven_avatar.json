@@ -1,0 +1,21 @@
+{
+	"result": {
+		"item": "botaunomy:elven_avatar"
+	},
+	"pattern": [
+		" W ",
+		"WDW",
+		"W W"
+	],
+	"type": "forge:ore_shaped",
+	"key": {
+		"D": {
+			"type": "forge:ore_dict",
+			"ore": "elvenDragonstone"
+		},
+		"W": {
+			"type": "forge:ore_dict",
+			"ore": "dreamwood"
+		}
+	}
+}
