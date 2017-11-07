@@ -1,10 +1,3 @@
-#-------------------------------------------------------------------------------
-# Copyright (C) 2017 oneandonlyflexo
-# https://creativecommons.org/licenses/by-nc-nd/4.0/
-# 
-# This file is part of Botaunomy, which is open source:
-# https://github.com/oneandonlyflexo/botaunomy
-#-------------------------------------------------------------------------------
 Copyright (C) 2017 Jeremy Grozavescu <oneandonlyflexo>
 https://creativecommons.org/licenses/by-nc-nd/4.0/
 

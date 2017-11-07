@@ -1,10 +1,5 @@
-#-------------------------------------------------------------------------------
-# Copyright (C) 2017 oneandonlyflexo
-# https://creativecommons.org/licenses/by-nc-nd/4.0/
-# 
-# This file is part of Botaunomy, which is open source:
-# https://github.com/oneandonlyflexo/botaunomy
-#-------------------------------------------------------------------------------
+![](src/main/resources/assets/botaunomy/logo.png)
+
 Botaunomy: the Botanical Autonomy Mod!
 
 I love botania and find I want to do things from other mods with just botania so I'm adding in bits and pieces here
