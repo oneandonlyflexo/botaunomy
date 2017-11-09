@@ -1,0 +1,25 @@
+{
+	"result": {
+		"item": "botaunomy:rod_will"
+	},
+	"pattern": [
+		" ED",
+		" TE",
+		"T  "
+	],
+	"type": "forge:ore_shaped",
+	"key": {
+		"D": {
+			"type": "forge:ore_dict",
+			"ore": "elvenDragonstone"
+		},
+		"E": {
+			"type": "forge:ore_dict",
+			"ore": "ingotElvenElementium"
+		},
+		"T": {
+			"type": "forge:ore_dict",
+			"ore": "dreamwoodTwig"
+		}
+	}
+}

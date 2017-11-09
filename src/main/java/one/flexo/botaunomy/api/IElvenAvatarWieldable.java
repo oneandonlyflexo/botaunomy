@@ -8,9 +8,8 @@
 package one.flexo.botaunomy.api;
 
 import net.minecraft.item.ItemStack;
+import vazkii.botania.api.item.IAvatarTile;
 import vazkii.botania.api.item.IAvatarWieldable;
-import vazkii.botania.common.block.tile.TileAvatar;
-import vazkii.botania.common.block.tile.TileElvenAvatar;
 
 /**
  * @author "oneandonlyflexo"
@@ -26,11 +25,12 @@ public interface IElvenAvatarWieldable extends IAvatarWieldable {
 	 * This method comes from extending IAvatarWieldable.  Only implement this if this weildable also does something
 	 * for the base livingwood avatar.
 	 */
-	void onAvatarUpdate(TileAvatar tileAvatar, ItemStack stack);
+	@Override
+	void onAvatarUpdate(IAvatarTile tileAvatar, ItemStack stack);
 
 	/**
 	 * The bread and butter of this wieldable!  Do awesome and amazing things with this method. Please ;)
 	 */
-	void onElvenAvatarUpdate(TileElvenAvatar tileElvenAvatar, ItemStack stack);
+	void onElvenAvatarUpdate(IElvenAvatarTile tileElvenAvatar, ItemStack stack);
 
 }

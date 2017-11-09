@@ -34,7 +34,8 @@ import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.lexicon.ILexiconable;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.state.BotaniaStateProps;
-import vazkii.botania.common.block.tile.*;
+import vazkii.botania.common.block.tile.TileElvenAvatar;
+import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.helper.InventoryHelper;
 import vazkii.botania.common.lexicon.LexiconData;
 
@@ -82,7 +83,7 @@ public class ElvenAvatarBlock extends BaseBlock implements ILexiconable {
 
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing s, float xs, float ys, float zs) {
-		TileAvatar avatar = (TileAvatar) world.getTileEntity(pos);
+		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
 		ItemStack stackOnAvatar = avatar.getItemHandler().getStackInSlot(0);
 		ItemStack stackOnPlayer = player.getHeldItem(hand);
 		if(!stackOnAvatar.isEmpty()) {

@@ -1,0 +1,21 @@
+{
+	"result": {
+		"item": "botaunomy:rod_work"
+	},
+	"pattern": [
+		" DD",
+		" TD",
+		"T  "
+	],
+	"type": "forge:ore_shaped",
+	"key": {
+		"D": {
+			"type": "forge:ore_dict",
+			"ore": "elvenDragonstone"
+		},
+		"T": {
+			"type": "forge:ore_dict",
+			"ore": "dreamwoodTwig"
+		}
+	}
+}

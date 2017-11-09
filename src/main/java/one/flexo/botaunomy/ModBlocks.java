@@ -17,8 +17,7 @@ import one.flexo.botaunomy.block.ElvenAvatarBlock;
 @ObjectHolder("botaunomy")
 public class ModBlocks {
 
-	@ObjectHolder("elven_avatar")
-	public static final ElvenAvatarBlock elven_avatar = new ElvenAvatarBlock();
+	public static final ElvenAvatarBlock elven_avatar = null;
 
 
 	public static void registerBlocks(RegistryEvent.Register<Block> event) {
