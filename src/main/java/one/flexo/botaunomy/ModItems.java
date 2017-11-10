@@ -7,12 +7,14 @@
  ******************************************************************************/
 package one.flexo.botaunomy;
 
+import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import one.flexo.botaunomy.client.render.IModelRegister;
 import one.flexo.botaunomy.item.WillRodItem;
 import one.flexo.botaunomy.item.base.ItemBlockBase;
 
@@ -35,6 +37,14 @@ public class ModItems {
 
 	@SideOnly(Side.CLIENT)
 	public static void initModels() {
+		for(Block block : Block.REGISTRY) {
+			if(block instanceof IModelRegister)
+				((IModelRegister) block).registerModels();
+		}
 
+		for(Item item : Item.REGISTRY) {
+			if(item instanceof IModelRegister)
+				((IModelRegister) item).registerModels();
+		}
 	}
 }

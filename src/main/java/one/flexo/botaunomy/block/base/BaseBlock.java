@@ -23,8 +23,9 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import one.flexo.botaunomy.ModInfo;
+import one.flexo.botaunomy.client.render.IModelRegister;
+import one.flexo.botaunomy.util.ModIdType;
 import vazkii.botania.client.core.handler.ModelHandler;
-import vazkii.botania.client.render.IModelRegister;
 import vazkii.botania.common.core.BotaniaCreativeTab;
 
 /**
@@ -37,7 +38,7 @@ public abstract class BaseBlock extends Block implements IModelRegister {
 
 	public BaseBlock(Material par2Material, String name) {
 		super(par2Material);
-		setUnlocalizedName(name);
+		setUnlocalizedName(ModIdType.DEFAULT.getId(name));
 		setRegistryName(new ResourceLocation(ModInfo.modid, name));
 		if(registerInCreative())
 			setCreativeTab(BotaniaCreativeTab.INSTANCE); //Being a botania addon, still adding things to this tab

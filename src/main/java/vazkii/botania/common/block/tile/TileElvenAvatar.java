@@ -95,12 +95,14 @@ public class TileElvenAvatar extends TileAvatar implements IElvenAvatarTile {
 
 	@Override
 	public WeakReference<FakePlayer> getAvatarPlayer() {
-		if (avatarPlayer == null) {
-			avatarPlayer = initFakePlayer((WorldServer) world, uuid);
+		if(world instanceof WorldServer) {
 			if (avatarPlayer == null) {
-				//TODO: Log error
-				//TODO: create flag to stop trying to make fake player
-				return null;
+				avatarPlayer = initFakePlayer((WorldServer) world, uuid);
+				if (avatarPlayer == null) {
+					//TODO: Log error
+					//TODO: create flag to stop trying to make fake player
+					return null;
+				}
 			}
 		}
 		return avatarPlayer;
