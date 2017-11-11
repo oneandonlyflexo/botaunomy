@@ -28,6 +28,8 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 
 	static final ResourceLocation avatarOverlay = new ResourceLocation(ModResources.MODEL_AVATAR_WILL_WORK);
 
+	private static final int MANA_COST = 200;
+
 	protected boolean useRightClick;
 
 	public WillRodItem(String name, boolean useRightClick) {
@@ -46,28 +48,37 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 	}
 
 	@Override
-	public void onElvenAvatarUpdate(IElvenAvatarTile tileElvenAvatar, ItemStack stack) {
-		if (!tileElvenAvatar.isEnabled()) {
-			return;
-		}
-		TileEntity tile = tileElvenAvatar.asTileEntity();
-		WeakReference<FakePlayer> avatarPlayer = tileElvenAvatar.getAvatarPlayer();
-		if (avatarPlayer == null) {
+	public void onElvenAvatarUpdate(IElvenAvatarTile avatar, ItemStack stack) {
+		if (!avatar.isEnabled()) {
 			return;
 		}
 
-		avatarPlayer.get().rotationYaw = FlexoUtil.getYaw(tileElvenAvatar.getAvatarFacing());
+		if(avatar.getCurrentMana() >= MANA_COST || avatar.getElapsedFunctionalTicks() % 20 == 0) {
+			boolean interactedWithBlock = false;
+			boolean interactedWithEntities = false;
 
-		//TODO: have fake player try to equip the linked item in the wand.
+			TileEntity tile = avatar.asTileEntity();
+			WeakReference<FakePlayer> avatarPlayer = avatar.getAvatarPlayer();
+			if (avatarPlayer == null) {
+				return;
+			}
 
-		boolean rightClick = useRightClick();
-		try {
-			BlockPos targetPos = tile.getPos().offset(tileElvenAvatar.getAvatarFacing());
-			interactBlock(tileElvenAvatar, avatarPlayer, targetPos, true);
-			interactEntities(tileElvenAvatar, avatarPlayer, targetPos, true);
-		}
-		catch (Exception e) {
-			//TODO: Print error
+			avatarPlayer.get().rotationYaw = FlexoUtil.getYaw(avatar.getAvatarFacing());
+
+			//TODO: have fake player try to equip the linked item in the wand.
+
+			boolean rightClick = useRightClick();
+			try {
+				BlockPos targetPos = tile.getPos().offset(avatar.getAvatarFacing());
+				interactedWithBlock = interactBlock(avatar, avatarPlayer, targetPos, true);
+				interactedWithEntities = interactEntities(avatar, avatarPlayer, targetPos, true);
+			}
+			catch (Exception e) {
+				//TODO: Print error
+			}
+			if(interactedWithBlock || interactedWithEntities) {
+				avatar.recieveMana(-MANA_COST);
+			}
 		}
 
 	}
@@ -116,12 +127,13 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 		return false;
 	}
 
-	private void interactEntities(
+	private boolean interactEntities(
 			IElvenAvatarTile tileElvenAvatar,
 			WeakReference<FakePlayer> avatarPlayer,
 			BlockPos targetPos,
 			boolean rightClick)
 	{
+		boolean interacted = true;
 		AxisAlignedBB entityRange = new AxisAlignedBB(targetPos).offset(0.5, 0, 0.5);
 
 		World world = tileElvenAvatar.getAvatarWorld();
@@ -138,6 +150,7 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 						//TODO: add a check in for tool/itemstack
 						if (EnumActionResult.FAIL != avatarPlayer.get().interactOn(entity, EnumHand.MAIN_HAND)) {
 							dropInventory(world, avatarPlayer, targetPos);
+							interacted = true;
 							break;
 						}
 					}
@@ -148,11 +161,13 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 			ItemStack mainHand = avatarPlayer.get().getHeldItemMainhand();
 			avatarPlayer.get().onGround = true;
 			for (EntityLivingBase entity : living) {
+				interacted = true;
 				avatarPlayer.get().attackTargetEntityWithCurrentItem(entity);
 				float damage = FlexoUtil.getAttackDamage(mainHand, entity);
 				entity.attackEntityFrom(DamageSource.causePlayerDamage(avatarPlayer.get()), damage);
 			}
 		}
+		return interacted;
 	}
 
 	private void dropInventory(World world, WeakReference<FakePlayer> avatarPlayer, BlockPos pos) {

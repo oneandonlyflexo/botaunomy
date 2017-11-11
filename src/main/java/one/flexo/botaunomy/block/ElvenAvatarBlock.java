@@ -30,18 +30,18 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
 import one.flexo.botaunomy.api.IElvenAvatarWieldable;
 import one.flexo.botaunomy.block.base.BaseBlock;
+import one.flexo.botaunomy.block.tile.TileElvenAvatar;
 import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.lexicon.ILexiconable;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.state.BotaniaStateProps;
-import vazkii.botania.common.block.tile.TileElvenAvatar;
 import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.helper.InventoryHelper;
 import vazkii.botania.common.lexicon.LexiconData;
 
 public class ElvenAvatarBlock extends BaseBlock implements ILexiconable {
 
-	private static final String NAME = "elven_avatar";
+	public static final String NAME = "elven_avatar";
 
 	private static final AxisAlignedBB X_AABB = new AxisAlignedBB(.3125, 0, .21875, 1-.3125, 17/16.0, 1-.21875);
 	private static final AxisAlignedBB Z_AABB = new AxisAlignedBB(.21875, 0, .3125, 1-.21875, 17/16.0, 1-.3125);

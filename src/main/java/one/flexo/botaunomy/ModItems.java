@@ -10,39 +10,39 @@ package one.flexo.botaunomy;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import one.flexo.botaunomy.client.render.IModelRegister;
 import one.flexo.botaunomy.item.WillRodItem;
-import one.flexo.botaunomy.item.base.ItemBlockBase;
 
+
+@Mod.EventBusSubscriber
 @ObjectHolder("botaunomy")
 public class ModItems {
 
 	public static final WillRodItem rod_will = null;
 	public static final WillRodItem rod_work = null;
 
-	public static void registerItems(Register<Item> event) {
+
+
+	@SubscribeEvent
+	public static void registerItems(RegistryEvent.Register<Item> event) {
 		event.getRegistry().registerAll(
 				new WillRodItem("rod_will", true),
 				new WillRodItem("rod_work", false));
 	}
 
-	public static void registerItemBlocks(RegistryEvent.Register<Item> event) {
-		event.getRegistry().registerAll(
-				new ItemBlockBase(ModBlocks.elven_avatar));
-	}
-
 	@SideOnly(Side.CLIENT)
 	public static void initModels() {
-		for(Block block : Block.REGISTRY) {
+		for(Object block : Block.REGISTRY) {
 			if(block instanceof IModelRegister)
 				((IModelRegister) block).registerModels();
 		}
 
-		for(Item item : Item.REGISTRY) {
+		for(Object item : Item.REGISTRY) {
 			if(item instanceof IModelRegister)
 				((IModelRegister) item).registerModels();
 		}

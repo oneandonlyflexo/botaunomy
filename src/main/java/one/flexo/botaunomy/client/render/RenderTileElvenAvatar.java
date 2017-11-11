@@ -22,11 +22,11 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import one.flexo.botaunomy.ModBlocks;
 import one.flexo.botaunomy.ModResources;
+import one.flexo.botaunomy.block.tile.TileElvenAvatar;
 import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.model.ModelAvatar;
-import vazkii.botania.common.block.tile.TileElvenAvatar;
 
 /**
  * @author "oneandonlyflexo"

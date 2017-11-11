@@ -18,8 +18,8 @@ import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import one.flexo.botaunomy.ModBlocks;
 import one.flexo.botaunomy.ModItems;
+import one.flexo.botaunomy.block.tile.TileElvenAvatar;
 import one.flexo.botaunomy.client.render.RenderTileElvenAvatar;
-import vazkii.botania.common.block.tile.TileElvenAvatar;
 
 @Mod.EventBusSubscriber
 public class ClientProxy extends CommonProxy {

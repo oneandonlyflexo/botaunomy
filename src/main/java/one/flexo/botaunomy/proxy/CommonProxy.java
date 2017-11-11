@@ -9,17 +9,11 @@ package one.flexo.botaunomy.proxy;
 
 import java.io.File;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.registries.IForgeRegistry;
-import one.flexo.botaunomy.*;
+import one.flexo.botaunomy.ModDimensions;
 import one.flexo.botaunomy.config.Config;
 
 @Mod.EventBusSubscriber
@@ -56,23 +50,6 @@ public abstract class CommonProxy {
 	 */
 	public void postInit(FMLPostInitializationEvent e) {
 
-	}
-
-	//TODO: move these register methods to modblocks/moditems
-
-	@SubscribeEvent
-	public static void registerBlocks(RegistryEvent.Register<Block> event) {
-		ModBlocks.registerBlocks(event);
-	}
-
-	@SubscribeEvent
-	public static void registerItems(RegistryEvent.Register<Item> event) {
-		ModItems.registerItems(event);
-		ModItems.registerItemBlocks(event);
-	}
-
-	private static void registerSimpleItemBlock(IForgeRegistry<Item> registry, Block block) {
-		registry.register(new ItemBlock(block).setRegistryName(block.getRegistryName()));
 	}
 
 	// helper to determine whether the given player is in creative mode

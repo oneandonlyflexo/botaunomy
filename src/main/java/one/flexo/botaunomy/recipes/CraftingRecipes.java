@@ -9,13 +9,20 @@ package one.flexo.botaunomy.recipes;
 
 import net.minecraft.util.ResourceLocation;
 import one.flexo.botaunomy.ModBlocks;
+import one.flexo.botaunomy.ModItems;
 
 public class CraftingRecipes {
 
 	public static ResourceLocation recipeElvenAvatar;
 
+	public static ResourceLocation recipeWillRod;
+	public static ResourceLocation recipeWorkRod;
+
 	static {
 		recipeElvenAvatar = ModBlocks.elven_avatar.getRegistryName();
+
+		recipeWillRod = ModItems.rod_will.getRegistryName();
+		recipeWorkRod= ModItems.rod_work.getRegistryName();
 	}
 
 }
