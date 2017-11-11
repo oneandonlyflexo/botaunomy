@@ -15,12 +15,12 @@ import net.minecraftforge.fml.common.event.*;
 import one.flexo.botaunomy.proxy.CommonProxy;
 
 /**
- * @author "oneandonlyflexo"
- *
  * Botaunomy! The oddly spelled, slightly quirky addon to Botania. This mod is my first foray into modding since waaay
  * back in the beta 1.5-1.7 days.  It's a wild ride and if you're reading this I hope you enjoy my code and don't
  * think too harshly of me.  I have an 18 month old atm and am sacrificing a bit of my already hectic sleep schedule
  * to work on this.
+ *
+ * @author "oneandonlyflexo"
  */
 
 @Mod(modid = ModInfo.modid,

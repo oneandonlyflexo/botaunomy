@@ -8,10 +8,10 @@
 package one.flexo.botaunomy;
 
 /**
- * @author "oneandonlyflexo"
- *
  * Top level info related to the mod.  Real important stuff here! ...and yes I know constants are typically all
  * upper-cased, but I felt like using lower-case for these.
+ *
+ * @author "oneandonlyflexo"
  */
 public class ModInfo {
 

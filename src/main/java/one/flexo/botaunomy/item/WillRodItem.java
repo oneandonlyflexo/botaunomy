@@ -53,7 +53,7 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 			return;
 		}
 
-		if(avatar.getCurrentMana() >= MANA_COST || avatar.getElapsedFunctionalTicks() % 20 == 0) {
+		if(avatar.getCurrentMana() >= MANA_COST && avatar.getElapsedFunctionalTicks() % 20 == 0) {
 			boolean interactedWithBlock = false;
 			boolean interactedWithEntities = false;
 

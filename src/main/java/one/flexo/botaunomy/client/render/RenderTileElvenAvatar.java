@@ -29,11 +29,11 @@ import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.model.ModelAvatar;
 
 /**
- * @author "oneandonlyflexo"
- *
  * This is a straight of copy of Botania's RenderTileAvatar class because I needed to change the texture.  I should
  * probably try to figure out how to access other mod's private fields and modify them because then I could just use
  * the existing class and modify it's texture field to be the correct one.
+ *
+ * @author "oneandonlyflexo"
  */
 public class RenderTileElvenAvatar extends TileEntitySpecialRenderer<TileElvenAvatar> {
 

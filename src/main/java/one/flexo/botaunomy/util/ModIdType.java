@@ -10,9 +10,9 @@ package one.flexo.botaunomy.util;
 import one.flexo.botaunomy.ModInfo;
 
 /**
- * @author "oneandonlyflexo"
- *
  * A utility enum for getting the different types of ids that need the modid as a prefix.
+ *
+ * @author "oneandonlyflexo"
  */
 public enum ModIdType {
 

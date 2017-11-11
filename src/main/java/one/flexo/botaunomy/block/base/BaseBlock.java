@@ -29,10 +29,10 @@ import vazkii.botania.client.core.handler.ModelHandler;
 import vazkii.botania.common.core.BotaniaCreativeTab;
 
 /**
- * @author "oneandonlyflexo"
- *
  * This was mostly copied from Botania, but I imagine it will get heavily modified and customized once I find my
  * voice in this modding business.
+ *
+ * @author "oneandonlyflexo"
  */
 public abstract class BaseBlock extends Block implements IModelRegister {
 

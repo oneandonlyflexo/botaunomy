@@ -12,12 +12,12 @@ import vazkii.botania.api.item.IAvatarTile;
 import vazkii.botania.api.item.IAvatarWieldable;
 
 /**
- * @author "oneandonlyflexo"
- *
  * This is for class of rods/staffs that are supposed to only be wielded by this mod's elven avatar.  For ease of
  * integration with Botania, this interface inherits from IAvatarWieldable, but any item that is intended to be
  * IElvenAvatarWieldable should only implement IAvatarWieldable#onAvatarUpdate if it's supposed to do something with
  * the original livingwood avatar that's different than for the elven avatar.
+ *
+ * @author "oneandonlyflexo"
  */
 public interface IElvenAvatarWieldable extends IAvatarWieldable {
 
