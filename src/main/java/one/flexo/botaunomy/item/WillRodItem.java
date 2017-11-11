@@ -70,8 +70,8 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 			boolean rightClick = useRightClick();
 			try {
 				BlockPos targetPos = tile.getPos().offset(avatar.getAvatarFacing());
-				interactedWithBlock = interactBlock(avatar, avatarPlayer, targetPos, true);
-				interactedWithEntities = interactEntities(avatar, avatarPlayer, targetPos, true);
+				interactedWithBlock = interactBlock(avatar, avatarPlayer, targetPos, useRightClick);
+				interactedWithEntities = interactEntities(avatar, avatarPlayer, targetPos, useRightClick);
 			}
 			catch (Exception e) {
 				//TODO: Print error
