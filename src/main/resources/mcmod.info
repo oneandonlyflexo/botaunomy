@@ -12,7 +12,7 @@
   "logoFile": "assets/botaunomy/logo.png",
   "screenshots": [],
   "requiredMods": ["botania"],
-  "dependencies": ["botania"],
+  "dependencies": ["required-after:botania;"],
   "useDependencyInformation": true
 }
 ]
