@@ -27,17 +27,18 @@ import one.flexo.botaunomy.proxy.CommonProxy;
 name = ModInfo.name,
 version = ModInfo.version,
 useMetadata = true,
+dependencies = "required-after:nibbler;required-after:botania",
 acceptedMinecraftVersions = "[1.12,1.12.2]",
-acceptableRemoteVersions = "[0.1]")
+acceptableRemoteVersions = "[0.2]")
 public class Botaunomy
 {
+
+	@Mod.Instance
+	public static Botaunomy instance;
 
 	//Says where the client and server 'proxy' code is loaded.
 	@SidedProxy(clientSide="one.flexo.botaunomy.proxy.ClientProxy", serverSide="one.flexo.botaunomy.proxy.ServerProxy")
 	public static CommonProxy proxy;
-
-	@Mod.Instance
-	public static Botaunomy instance;
 
 	public static Logger logger;
 

@@ -20,8 +20,8 @@ import net.minecraftforge.common.util.FakePlayer;
 import one.flexo.botaunomy.ModResources;
 import one.flexo.botaunomy.api.IElvenAvatarTile;
 import one.flexo.botaunomy.api.IElvenAvatarWieldable;
-import one.flexo.botaunomy.item.base.ItemBase;
-import one.flexo.botaunomy.util.FlexoUtil;
+import one.flexo.botaunomy.nibbler.ItemBase;
+import one.flexo.nibbler.util.NibblerUtil;
 import vazkii.botania.api.item.IAvatarTile;
 
 public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
@@ -63,7 +63,7 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 				return;
 			}
 
-			avatarPlayer.get().rotationYaw = FlexoUtil.getYaw(avatar.getAvatarFacing());
+			avatarPlayer.get().rotationYaw = NibblerUtil.Entity.getYaw(avatar.getAvatarFacing());
 
 			//TODO: have fake player try to equip the linked item in the wand.
 
@@ -163,7 +163,7 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 			for (EntityLivingBase entity : living) {
 				interacted = true;
 				avatarPlayer.get().attackTargetEntityWithCurrentItem(entity);
-				float damage = FlexoUtil.getAttackDamage(mainHand, entity);
+				float damage = NibblerUtil.Entity.getAttackDamage(mainHand, entity);
 				entity.attackEntityFrom(DamageSource.causePlayerDamage(avatarPlayer.get()), damage);
 			}
 		}
@@ -178,7 +178,6 @@ public class WillRodItem extends ItemBase implements IElvenAvatarWieldable {
 				if (world.isRemote == false) {
 					world.spawnEntity(entityItem);
 				}
-				entityItem.setVelocity(0, 0, 0);
 				s.setCount(0);
 			}
 		}

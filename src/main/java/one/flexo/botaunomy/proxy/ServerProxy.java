@@ -1,14 +1,12 @@
 /*******************************************************************************
  * Copyright (C) 2017 Jeremy Grozavescu <oneandonlyflexo>
  * https://creativecommons.org/licenses/by-nc-sa/4.0/
- * 
+ *
  * This file is part of Botaunomy, which is open source:
  * https://github.com/oneandonlyflexo/botaunomy
  ******************************************************************************/
 package one.flexo.botaunomy.proxy;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
 
@@ -30,15 +28,4 @@ public class ServerProxy extends CommonProxy {
 		super.postInit(event);
 	}
 
-	@Override
-	public boolean playerIsInCreativeMode(EntityPlayer player) {
-		if (player instanceof EntityPlayerMP) {
-			EntityPlayerMP entityPlayerMP = (EntityPlayerMP) player;
-			return entityPlayerMP.interactionManager.isCreative();
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isDedicatedServer() {return true;}
 }

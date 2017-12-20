@@ -29,8 +29,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
 import one.flexo.botaunomy.api.IElvenAvatarWieldable;
-import one.flexo.botaunomy.block.base.BaseBlock;
 import one.flexo.botaunomy.block.tile.TileElvenAvatar;
+import one.flexo.botaunomy.nibbler.BlockBase;
 import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.lexicon.ILexiconable;
 import vazkii.botania.api.lexicon.LexiconEntry;
@@ -39,7 +39,7 @@ import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.helper.InventoryHelper;
 import vazkii.botania.common.lexicon.LexiconData;
 
-public class ElvenAvatarBlock extends BaseBlock implements ILexiconable {
+public class ElvenAvatarBlock extends BlockBase implements ILexiconable {
 
 	public static final String NAME = "elven_avatar";
 
@@ -156,7 +156,7 @@ public class ElvenAvatarBlock extends BaseBlock implements ILexiconable {
 	public void registerModels() {
 		ModelLoader.setCustomStateMapper(this, new StateMap.Builder().ignore(BotaniaStateProps.CARDINALS).build());
 		ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(this), 0, TileElvenAvatar.class);
-		registerCustomItemblock(this, "elven_avatar");
+		registerCustomItemblock(this);
 	}
 
 }

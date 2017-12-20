@@ -9,11 +9,14 @@ package one.flexo.botaunomy.proxy;
 
 import java.io.File;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
-import one.flexo.botaunomy.ModDimensions;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import one.flexo.botaunomy.*;
 import one.flexo.botaunomy.config.Config;
 
 @Mod.EventBusSubscriber
@@ -32,6 +35,8 @@ public abstract class CommonProxy {
 		config = new Configuration(new File(directory.getPath(), "modtut.cfg"));
 		Config.readConfig();
 
+		ModBlocks.init();
+		ModItems.init();
 		ModDimensions.init();
 	}
 
@@ -52,13 +57,14 @@ public abstract class CommonProxy {
 
 	}
 
-	// helper to determine whether the given player is in creative mode
-	//  not necessary for most examples
-	abstract public boolean playerIsInCreativeMode(EntityPlayer player);
+	@SubscribeEvent
+	public static void registerBlocks(RegistryEvent.Register<Block> event) {
+		ModRegistry.instance.registerBlocks(event);
+	}
 
-	/**
-	 * is this a dedicated server?
-	 * @return true if this is a dedicated server, false otherwise
-	 */
-	abstract public boolean isDedicatedServer();
+	@SubscribeEvent
+	public static void registerItems(RegistryEvent.Register<Item> event) {
+		ModRegistry.instance.registerItems(event);
+		ModBlocks.registerTileEntities();
+	}
 }

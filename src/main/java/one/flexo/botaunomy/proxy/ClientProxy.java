@@ -7,17 +7,11 @@
  ******************************************************************************/
 package one.flexo.botaunomy.proxy;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import one.flexo.botaunomy.ModBlocks;
-import one.flexo.botaunomy.ModItems;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import one.flexo.botaunomy.block.tile.TileElvenAvatar;
 import one.flexo.botaunomy.client.render.RenderTileElvenAvatar;
 
@@ -40,31 +34,7 @@ public class ClientProxy extends CommonProxy {
 		super.postInit(event);
 	}
 
-	@SubscribeEvent
-	public static void registerModels(ModelRegistryEvent event) {
-		ModBlocks.initModels();
-		ModItems.initModels();
-	}
-
-	@Override
-	public boolean playerIsInCreativeMode(EntityPlayer player) {
-		if (player instanceof EntityPlayerMP) {
-			EntityPlayerMP entityPlayerMP = (EntityPlayerMP)player;
-			return entityPlayerMP.interactionManager.isCreative();
-		}
-		else if (player instanceof EntityPlayerSP) {
-			return Minecraft.getMinecraft().playerController.isInCreativeMode();
-		}
-		return false;
-	}
-
-	@Override
-	public boolean isDedicatedServer() {
-		return false;
-	}
-
-
-
+	@SideOnly(Side.CLIENT)
 	private void initRenderers() {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileElvenAvatar.class, new RenderTileElvenAvatar());
 	}
