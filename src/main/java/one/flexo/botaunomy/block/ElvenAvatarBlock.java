@@ -156,7 +156,7 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable {
 	public void registerModels() {
 		ModelLoader.setCustomStateMapper(this, new StateMap.Builder().ignore(BotaniaStateProps.CARDINALS).build());
 		ForgeHooksClient.registerTESRItemStack(Item.getItemFromBlock(this), 0, TileElvenAvatar.class);
-		registerCustomItemblock(this);
+		registerCustomItemblock(this, 1);
 	}
 
 }

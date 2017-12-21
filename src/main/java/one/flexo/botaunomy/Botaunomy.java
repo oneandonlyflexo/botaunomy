@@ -29,7 +29,7 @@ version = ModInfo.version,
 useMetadata = true,
 dependencies = "required-after:nibbler;required-after:botania",
 acceptedMinecraftVersions = "[1.12,1.12.2]",
-acceptableRemoteVersions = "[0.2]")
+acceptableRemoteVersions = "[0.2.1]")
 public class Botaunomy
 {
 
