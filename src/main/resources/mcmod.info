@@ -11,8 +11,8 @@
   "credits": "The Forge team of course. Vazkii for Botania!.",
   "logoFile": "assets/botaunomy/logo.png",
   "screenshots": [],
-  "requiredMods": ["botania", "nibbler"],
-  "dependencies": ["botania", "nibbler"],
+  "requiredMods": ["botania"],
+  "dependencies": ["botania"],
   "useDependencyInformation": true
 }
 ]

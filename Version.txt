@@ -1,0 +1,7 @@
+"0.3.1
+Can use Shear and tools on entities
+Can atack entities
+Can insert tools to avatar with a hopper
+MainHand Command says player main hand item name.
+Redstone pulse value 1 when mana is consumed.
+Avatar is disabled when strong redstone signal.

@@ -10,14 +10,16 @@ resources so will be mid to late game Botania additions.
 
 * Dreamwood Avatar - upgraded avatar that can interact with the world. Think of 
     a more mystical, mana oriented autonomous activator.
-* Rod of Will - Rod that the dreamworld avatar can use to right click blocks
-* Rod of Toil - Rod that the dreamworld avatar can use to left click blocks.
-
-## Planned Features
-
-* Ability to pair the rods to a generic item so it can be used to right/left 
-    click with.
-* Ability to speed up the rods or have them interact farther away.
+* Rod of Will - Rod that the elven avatar can use to right-click on blocks.
+* Rod of Toil - Rod that the elven avatar can use combined with tools to left click on blocks.
+* You can use axes, picks, hoes ... to break blocks.
+* You can use shear and tools on entities
+* Can attack entities
+* Animated when breaking blocks or using tools.
+* You can insert tools to the avatar with a hopper.
+* Redstone pulse value 1 when mana is consumed.
+* Avatar is disabled when there is a strong redstone signal.
+* MainHand Command says the name of the element of the player's main hand.
 
 ## Credits
 
@@ -33,4 +35,7 @@ Please do add this mod to your modpack! I only ask you let me know on Twitter:
 
 ![](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)  
 Botaunomy is licensed under the [Creative Commons BY-SA-NC 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
-Copyright (C) 2017 Jeremy Grozavescu \<oneandonlyflexo>
+Copyright (C) 2017 Jeremy Grozavescu 
+Copyright (C) 2021 Luis Cuesta
+
+<oneandonlyflexo>
