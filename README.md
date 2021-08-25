@@ -11,13 +11,13 @@ resources so will be mid to late game Botania additions.
 * Dreamwood Avatar - upgraded avatar that can interact with the world. Think of 
     a more mystical, mana oriented autonomous activator.
 * Rod of Will - Rod that the dreamworld avatar can use to right click blocks
-* Rod of Toil - Rod that the dreamworld avatar can use to left click blocks.
+* Rod of Toil - Rod that the dreamworld avatar can use combined with tools to left click blocks.
+* Can use axes, pickaxes, hoe ... to break blocks.
+* Animated when breaking blocks.
 
-## Planned Features
+## Future Features
 
-* Ability to pair the rods to a generic item so it can be used to right/left 
-    click with.
-* Ability to speed up the rods or have them interact farther away.
+* Use tools with entities.
 
 ## Credits
 
