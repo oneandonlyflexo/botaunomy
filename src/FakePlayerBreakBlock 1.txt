@@ -1,0 +1,42 @@
+	private boolean breakBlock(IElvenAvatarTile tileElvenAvatar,WeakReference<FakePlayer> fakePlayer,BlockPos targetPos){
+
+		if(Block.getBlockFromItem(fakePlayer.get().getHeldItemMainhand().getItem()) != Blocks.AIR) {
+			//This ain't no block placer!
+			return false;
+		}
+		LeftClickBlock event2 = onLeftClickBlock(fakePlayer.get(), targetPos, EnumFacing.UP, rayTraceEyeHitVec(fakePlayer.get(), 2));
+		if (!event2.isCanceled() && event2.getUseItem() != Event.Result.DENY) {
+			EventHandler.cancelClickBlock.set(true);
+			fakePlayer.get().interactionManager.onBlockClicked(targetPos, EnumFacing.UP);
+			EventHandler.cancelClickBlock.set(false);
+			for (int i = 0; i < 20; i++) {
+				fakePlayer.get().interactionManager.updateBlockRemoving();
+			}
+			fakePlayer.get().interactionManager.blockRemoving(targetPos);
+			fakePlayer.get().interactionManager.cancelDestroyingBlock();
+			return  true;
+		} else {
+			return false;
+		}		
+	}
+	
+	private static class EventHandler {
+		static ThreadLocalBoolean cancelClickBlock = new ThreadLocalBoolean(false);
+		@SubscribeEvent
+		public void appropriateType(LeftClickBlock event) {
+			if (cancelClickBlock.get()) {
+				event.setUseBlock(Event.Result.DENY);
+			}
+		}
+	}
+	
+	private  static class ThreadLocalBoolean extends ThreadLocal<Boolean> {
+		public final Boolean _default;
+		public ThreadLocalBoolean(boolean aDefault) {
+			_default = aDefault;
+		}
+		@Override
+		protected Boolean initialValue() {
+			return _default;
+		}
+	}

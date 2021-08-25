@@ -1,0 +1,26 @@
+{
+	"result": {
+		"item": "botaunomy:elven_avatar"
+	},
+	"pattern": [
+		"DWD",
+		"WAW",
+		"WBW"
+	],
+	"type": "forge:ore_shaped",
+	"key": {
+		"A": {
+			"item": "botania:avatar"
+		},
+		"W": {
+			"item": "minecraft:gold_ingot"
+		},
+		"B": {
+			"item": "minecraft:gold_block"
+		},
+		"D": {
+			"type": "forge:ore_dict",
+			"ore": "elvenDragonstone"
+		}
+	}
+}

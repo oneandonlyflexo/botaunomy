@@ -1,0 +1,12 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "botania:dummy",
+    "textures": {
+      "particle": "blocks/gold_block"
+    }
+  },
+  "variants": {
+    "normal": [{}]
+  }
+}
