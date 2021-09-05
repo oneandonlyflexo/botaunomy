@@ -5,6 +5,7 @@ import botaunomy.item.RodItem;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import vazkii.botania.api.mana.IManaItem;
 
 public class ItemStackType {
 
@@ -15,6 +16,7 @@ public class ItemStackType {
     	SHEAR,
     	USE,
     	KILL,  
+    	MANA,
     	ROD_WILL,
     	ROD_WORK,
     	BLOCK
@@ -45,6 +47,9 @@ public class ItemStackType {
 		}
 		for(int a = 0;a<Config.entitiesAtacksList.length; a++) {
 			if (s.toLowerCase().contains(Config.entitiesAtacksList[a])) return Types.KILL;
+		}	
+		for(int a = 0;a<Config.itemsContainManaList.length; a++) {
+			if (i.getItem() instanceof IManaItem &&  s.toLowerCase().contains(Config.itemsContainManaList[a])) return Types.MANA;
 		}	
 		if (Block.getBlockFromItem(i.getItem()) != Blocks.AIR) return Types.BLOCK;
 		

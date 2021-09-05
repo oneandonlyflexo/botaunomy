@@ -43,8 +43,7 @@ public abstract class CommonProxy {
 		ModDimensions.init();
 		
 		ModSimpleNetworkChannel.registerMessages();
-		
-		SecuencesAvatar.init();
+				
 		
 	}
 

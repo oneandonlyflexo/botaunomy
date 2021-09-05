@@ -12,8 +12,6 @@
 package botaunomy.block;
 
 import java.util.UUID;
-
-
 import javax.annotation.Nonnull;
 import botaunomy.item.RodItem;
 import botaunomy.registry.BlockBase;
@@ -26,6 +24,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -41,12 +41,12 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import vazkii.botania.api.lexicon.ILexiconable;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.state.BotaniaStateProps;
+import vazkii.botania.api.wand.IWandHUD;
 import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.helper.InventoryHelper;
 import vazkii.botania.common.lexicon.LexiconData;
 
-
-public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEntityRegisteredBlocked {
+public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEntityRegisteredBlocked,IWandHUD  {
 	
 	private UUID placerUUID;
 
@@ -70,6 +70,17 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 	public boolean canProvidePower(IBlockState state) {
 		return true;
 	}
+	
+	@Override
+	public void renderHUD(Minecraft mc, ScaledResolution res, World world, BlockPos pos) {
+		// TODO Auto-generated method stub
+		
+		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
+		if(avatar != null)
+			avatar.renderHUD(mc, res);
+
+		
+	}
 
 	/*
 	private EnumFacing left(EnumFacing facing) {
@@ -79,7 +90,8 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 		if(facing==EnumFacing.EAST) return EnumFacing.SOUTH;
 		return EnumFacing.DOWN;
 	}
-*/	
+   */	
+
 	@Override
 	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
 		
@@ -134,6 +146,15 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 		return getDefaultState().withProperty(BotaniaStateProps.CARDINALS, EnumFacing.getFront(meta)).withProperty(POWERED, power == 1);
 	}
 
+	
+	/*
+	@Override
+	public boolean onUsedByWand(EntityPlayer player, ItemStack stack, World world, BlockPos pos, EnumFacing side) {
+		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
+		avatar.onWanded(player, stack);			
+		return true;
+	}*/
+	
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer realPlayer, EnumHand hand, EnumFacing s, float xs, float ys, float zs) {
 		
@@ -144,7 +165,8 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 			ItemStack stackOnRealPlayer = realPlayer.getHeldItem(hand);	//getHeldItemMainhand()		
 			ItemStackType.Types stackOnRealPlayerType=ItemStackType.getTypeTool(stackOnRealPlayer);
 			
-			boolean rodWorkOnPlayer= (stackOnRealPlayer.getItem() instanceof RodItem) && stackOnRealPlayerType==ItemStackType.Types.ROD_WORK;										
+			boolean rodWorkOnPlayer= (stackOnRealPlayer.getItem() instanceof RodItem) && stackOnRealPlayerType==ItemStackType.Types.ROD_WORK;		
+			boolean wandOnPlayer=stackOnRealPlayer.getUnlocalizedName().equals("item.twigWand"); 
 			//boolean rodWillOnAvatar= (stackOnAvatar.getItem() instanceof RodItem) && ItemStackType.getTypeTool(stackOnAvatar)==ItemStackType.Types.ROD_WILL;
 			
 			if(avatar.getInventory().getType1()==ItemStackType.Types.ROD_WORK) {//rod_work to player				
@@ -152,21 +174,23 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 				avatar.markDirty();	
 			}else
 				if(avatar.getInventory().getType0()!=ItemStackType.Types.NONE && !rodWorkOnPlayer) { //from avatar to player					
-					ItemHandlerHelper.giveItemToPlayer(realPlayer, avatar.getInventory().take0());
-					//now  event do this
-					//avatar.secuencesAvatar.ActivateSecuence("DownArm");
-					//avatar.resetBreak();
-					//avatar.markDirty();
-					return true;
+					if (!wandOnPlayer) {
+						ItemHandlerHelper.giveItemToPlayer(realPlayer, avatar.getInventory().take0());
+						return true;
+					} else {						
+						avatar.onWanded(realPlayer, avatar.getInventory().get0());
+					}
+					
 				} else //from player to avatar					
 					if(!stackOnRealPlayer.isEmpty()) 				
 					{  																
-						boolean dontGive;
-						
-						dontGive=stackOnRealPlayer.getUnlocalizedName().equals("item.twigWand"); //dont let give botania twigwand or block
+						boolean dontGive;						
+						dontGive=wandOnPlayer; //dont let give botania twigwand or block
 						dontGive|=(stackOnRealPlayerType == ItemStackType.Types.BLOCK); //is a block, not tool
-												
-						if (!dontGive&&(stackOnRealPlayerType!=ItemStackType.Types.NONE))							
+						dontGive|=(stackOnRealPlayerType == ItemStackType.Types.NONE);
+									
+						if (wandOnPlayer) avatar.onWanded(realPlayer, avatar.getInventory().get0());
+						if (!dontGive)							
 						{																								
 							if (rodWorkOnPlayer) {
 								if (avatar.getInventory().getType0()==ItemStackType.Types.BREAK) {
@@ -185,7 +209,7 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 							avatar.markDirty();
 							return true;
 						}
-					}
+					}		
 		
 		return false;
 	}
@@ -260,5 +284,10 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 	public void registerModels() {
 		customRegisterModels();
 	}
+
+
+
+
+
 
 }

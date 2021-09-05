@@ -14,6 +14,17 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class MessageInventoryEmpty implements IMessage  {
 	
+	/*//SPacketUpdateTileEntity
+	if(!world.isRemote) {
+		NBTTagCompound nbttagcompound = new NBTTagCompound();
+		writePacketNBT(nbttagcompound);
+		nbttagcompound.setInteger(TAG_MANA, mana);
+		nbttagcompound.setBoolean(TAG_WAND,wandManaToTablet);
+		
+		if(player instanceof EntityPlayerMP)
+			((EntityPlayerMP) player).connection.sendPacket(new SPacketUpdateTileEntity(pos, -999, nbttagcompound));
+	}*/
+	
 	public MessageInventoryEmpty() {
 	
 	}

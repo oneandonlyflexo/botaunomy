@@ -52,11 +52,10 @@ public class MessageMoveArm implements IMessage  {
 		
 		@Override
 	    public IMessage onMessage(MessageMoveArm message, MessageContext ctx) {
-
-			World world = Minecraft.getMinecraft().world; //isRemote=true, client
-			IBlockState ibs = world.getBlockState(message.blockPos);
-			Block block = ibs.getBlock();
-			if (block instanceof ElvenAvatarBlock)
+			
+			World world = Minecraft.getMinecraft().world; 
+			if(!world.isRemote) return null;//isRemote=true, client
+			if (world.getBlockState(message.blockPos).getBlock() instanceof ElvenAvatarBlock)
 			 if (world.isBlockLoaded(message.blockPos)) {
 				 TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(message.blockPos);
 				 int nSecuencia=message.nSecuencia;

@@ -146,12 +146,18 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 	}
 	
+	public void emitRedstone() {
+		if (emitResdstoneTimer!=null)
+			emitResdstoneTimer.emitRedstone();
+	}
+	
 	private class EmitResdstoneTimer{
 		private int beginTime;
 		private static final int PULSE_TIME=10;
 		public  boolean isEnabled=false;
 		
 		public EmitResdstoneTimer(){}
+				
 		public void emitRedstone() {
 			//BlockPos targetPos = getPos().offset(right());		
 			//getWorld().getRedstonePower(targetPos, null)
@@ -161,7 +167,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			setState(isEnabled); 
 		}
 				
-		public void stopEmitRedstone(int ticksElapsed) {
+		public void checkStopEmitRedstone(int ticksElapsed) {
 			if (!isEnabled) return;
 			
 			if (ticksElapsed-beginTime>PULSE_TIME) {
@@ -180,6 +186,19 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		}
 
 	}		
+	
+	private void checkManaIsEmpty() {
+		if (avatar.getCurrentMana()>=0 )return;			
+		if (avatar.getInventory().haveItem())
+			new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+		else
+			new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
+								
+		if (breakingData.isBreaking()) {
+			breakingData.stopBreak();
+		}
+	}
+	
 	
 	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar,UUID puuid) {
 		avatar=pavatar;
@@ -228,7 +247,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		if (player!=null && breakingData.isBreaking ()) continueBreaking();				
 		else this.resetBreak();
 		
-		emitResdstoneTimer.stopEmitRedstone(ticksElapsed);		
+		emitResdstoneTimer.checkStopEmitRedstone(ticksElapsed);		
 	}
 		
     
@@ -249,6 +268,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		breakingData.sendBlockBreakProgress(player.get());
 
         avatar.recieveMana(- Config.breakManaCost);			
+        checkManaIsEmpty();
         emitResdstoneTimer.emitRedstone();
 		new MessageMana(getPos(),avatar.getCurrentMana());
 		new MessageMoveArm (getPos(),MessageMoveArm.SWING_ARM);
@@ -355,6 +375,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			
 				if(interactedWithBlock) {
 					avatar.recieveMana(-Config.rodManaCost);
+					checkManaIsEmpty();
 					emitResdstoneTimer.emitRedstone();
 					if(avatar.getWorld() instanceof WorldServer) {
 						new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
@@ -390,7 +411,8 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		toolUse|=interactedWithEntities;
 		
 		if( interactedWithEntities) {
-			avatar.recieveMana(-(Config.useManaCost));				
+			avatar.recieveMana(-(Config.useManaCost));		
+			checkManaIsEmpty();
 			emitResdstoneTimer.emitRedstone();
 			if(this.getWorld() instanceof WorldServer) {
 				new MessageMana(getPos(),avatar.getCurrentMana());
@@ -581,6 +603,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 				 
 				if(interactedWithBlock) {
 					avatar.recieveMana(-Config.rodManaCost);
+					checkManaIsEmpty();
 					emitResdstoneTimer.emitRedstone();
 					if(avatar.getWorld() instanceof WorldServer) {
 						new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);

@@ -46,4 +46,9 @@ public class ClientProxy extends CommonProxy {
 	public static void registerModels(ModelRegistryEvent event) {
 		ModRegistry.instance.registerModels(event);
 	}
+	
+	
+	
+	
+
 }

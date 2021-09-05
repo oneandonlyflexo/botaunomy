@@ -20,6 +20,7 @@ resources so will be mid to late game Botania additions.
 * Redstone pulse value 1 when mana is consumed.
 * Avatar is disabled when there is a strong redstone signal.
 * MainHand Command says the name of the element of the player's main hand.
+* Mana can be transferred to or form mana tablet on main hand of avatar.
 
 ## Credits
 

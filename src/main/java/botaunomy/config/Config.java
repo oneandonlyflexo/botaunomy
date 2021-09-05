@@ -23,11 +23,13 @@ public class Config {
     private static String toolsCanBeUsedWithEntities= "bucket;bowl";
     private static String toolsCanShearEntities= "shears";
     private static String toolsCanAtackEntities= "sword";
+    private static String itemsContainMana= "manatablet";
     
     public static String[] breakingToolsList;
     public static String[] entitiesToolsList;
     public static String[] entitiesShearsList;
     public static String[] entitiesAtacksList;
+    public static String[] itemsContainManaList;
     
     public static int useManaCost=160;
     public static int rodManaCost=160;
@@ -61,6 +63,7 @@ public class Config {
         toolsCanBeUsedWithEntities = cfg.getString("toolsCanBeUsedWithEntities", CATEGORY_GENERAL, toolsCanBeUsedWithEntities, "Set name of tools , or part of name, than can be used, separated by ;");
         toolsCanShearEntities = cfg.getString("toolsCanBeShearEntities", CATEGORY_GENERAL, toolsCanShearEntities, "Set name of tools , or part of name, than can be used to shear, separated by ;");
         toolsCanAtackEntities = cfg.getString("toolsCanAtackEntities", CATEGORY_GENERAL, toolsCanAtackEntities, "Set name of tools , or part of name, than can be used to atack, separated by ;");
+        itemsContainMana = cfg.getString("itemContainMana", CATEGORY_GENERAL, itemsContainMana, "Set name of items , or part of name, than can contain mana, separated by ;");
         
         useManaCost=cfg.getInt("UseManaCost", CATEGORY_GENERAL, useManaCost, 50, 1000, "Mana cost each time avatar uses a tool on entity");
         rodManaCost=cfg.getInt("RodManaCost", CATEGORY_GENERAL, rodManaCost, 50, 1000, "Mana cost each time avatar uses rod on a block");
@@ -72,6 +75,8 @@ public class Config {
         entitiesToolsList = toolsCanBeUsedWithEntities.split(";");
         entitiesShearsList = toolsCanShearEntities.split(";");
         entitiesAtacksList = toolsCanAtackEntities.split(";");
+        itemsContainManaList = itemsContainMana.split(";");
+        
         
     }
 
