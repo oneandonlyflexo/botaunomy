@@ -4,7 +4,9 @@ import botaunomy.config.Config;
 import botaunomy.item.RodItem;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import vazkii.botania.api.item.IManaDissolvable;
 import vazkii.botania.api.mana.IManaItem;
 
 public class ItemStackType {
@@ -49,8 +51,12 @@ public class ItemStackType {
 			if (s.toLowerCase().contains(Config.entitiesAtacksList[a])) return Types.KILL;
 		}	
 		for(int a = 0;a<Config.itemsContainManaList.length; a++) {
-			if (i.getItem() instanceof IManaItem &&  s.toLowerCase().contains(Config.itemsContainManaList[a])) return Types.MANA;
-		}	
+			{
+				Item item=i.getItem();
+			    boolean haveMana=item instanceof IManaItem ;
+			    haveMana|=item instanceof IManaDissolvable ;			    
+				if (haveMana  &&  s.toLowerCase().contains(Config.itemsContainManaList[a])) return Types.MANA;
+		}	}
 		if (Block.getBlockFromItem(i.getItem()) != Blocks.AIR) return Types.BLOCK;
 		
 		return Types.NONE;

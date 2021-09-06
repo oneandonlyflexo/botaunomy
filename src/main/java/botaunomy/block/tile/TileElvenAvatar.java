@@ -13,20 +13,18 @@
  ******************************************************************************/
 
 //TODO
-
-//Poder cargar un json directamente como modelo (generar el código en el aire).
+//Code to load a json model (generate code on air).
 
 
 package botaunomy.block.tile;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import org.lwjgl.opengl.GL11;
 import botaunomy.ItemStackType;
 import botaunomy.client.render.SecuencesAvatar;
 import botaunomy.model.ModelAvatar3;
+import botaunomy.network.MessageEnabled;
 import botaunomy.network.MessageMana;
 import botaunomy.network.MessageMoveArm;
 import net.minecraft.block.Block;
@@ -36,7 +34,10 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -45,7 +46,9 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.item.IAvatarTile;
+import vazkii.botania.api.item.IManaDissolvable;
 import vazkii.botania.api.mana.IManaItem;
+import vazkii.botania.api.mana.IManaPool;
 import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.client.core.handler.HUDHandler;
 import vazkii.botania.common.block.tile.TileSimpleInventory;
@@ -54,20 +57,15 @@ import vazkii.botania.common.item.ItemManaTablet;
 import vazkii.botania.common.item.ModItems;
 
 
-/**
- * The key bit to this class is the increase in max mana and the ability to use IElvenAvatarWieldable items.  It also
- * Offers some methods to the wieldables as the elven weildables are more powerful and can do more
- *
- * @author "oneandonlyflexo"
- */
-public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile , ITickable ,IElvenAvatarItemHadlerChangedListener {
+
+public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile , ITickable ,IElvenAvatarItemHadlerChangedListener,IManaPool {
 	
 	public  SecuencesAvatar secuencesAvatar=new SecuencesAvatar();
 	
 	public static final int POINTS_SEQUENCE_DURATION = 125;
 	private float[][] anglePoints= new float[ModelAvatar3.NARC][ModelAvatar3.NPOINTS];
 	
-	private static final int MAX_MANA = 31250;// 1/16 Mana Tablet
+	private static final int MAX_MANA = 100000;// less than 1/4 ManaTablet
 	private static final int AVATAR_TICK=20;
 	protected static final String TAG_ENABLED = "enabled";
 	protected static final String TAG_TICKS_ELAPSED = "ticksElapsed";
@@ -139,9 +137,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			GlStateManager.disableLighting();
 			GlStateManager.disableBlend();
 		}
-	}
-
-	
+	}	
 
 	public boolean isAvatarTick() {
 		return((ticksElapsed%AVATAR_TICK==0));
@@ -150,11 +146,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	public boolean haveItem() {
 		return getInventory().haveItem();
 	}
-	
-	public boolean haveMana(){
-		return (manaAvatar>=200);
-	}
-	
+
 	public  void inventoryToFakePlayer() {
 		fakePlayerHelper.inventoryToFakePlayer();
 	}
@@ -190,22 +182,36 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		
 		if (getWorld().isRemote) return;
 
-		boolean isAlreadyEnabled=enabled;
+		boolean emabledBeforeRedstone=enabled;
 		enabled = true;
 		for(EnumFacing dir : EnumFacing.VALUES) {
 			int redstoneSide = world.getRedstonePower(pos.offset(dir), dir);
-			if(redstoneSide == 15) {
-				enabled = false;
-				if (secuencesAvatar.isActive()&& isAlreadyEnabled)
-					if (getInventory().haveItem()) {						
-						new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
-					}else {
-						new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);			
-						resetBreak();
-					}	
+			if(redstoneSide >= 14) {
+				enabled = false;				
 				break;
 			}
 		}
+		
+		if (enabled)
+			for(EnumFacing dir : EnumFacing.HORIZONTALS) { //check ground level
+				int redstoneSide = world.getRedstonePower(pos.offset(EnumFacing.DOWN).offset(dir), dir);
+				if(redstoneSide >= 14) {
+					enabled = false;				
+					break;
+				}
+			}	
+			
+		if (emabledBeforeRedstone!=enabled) {
+			new MessageEnabled (getPos(),enabled);
+			if (secuencesAvatar.isActive())									
+				if (getInventory().haveItem()) {						
+					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+				}else {
+					new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);			
+					resetBreak();
+				}	
+		}
+	
 		
 		ItemStackType.Types type0=getInventory().getType0();
 		ItemStackType.Types type1=getInventory().getType1();
@@ -216,8 +222,23 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			}else 
 				
 				if (type0==ItemStackType.Types.MANA)  {
-					if (wandManaToTablet) avatarToTablet(getInventory().get0());
-					else tabletToAvatar(getInventory().get0());
+					
+					ItemStack stackMana=getInventory().get0();
+					Item itemmana=stackMana.getItem();
+					EntityItem entityItemMana= new EntityItem(getWorld(),pos.getX(), pos.getY(), pos.getZ(), stackMana);
+					
+					if (itemmana instanceof IManaDissolvable) {
+						((IManaDissolvable)itemmana).onDissolveTick((IManaPool)this,stackMana, entityItemMana);						
+						stackMana=getInventory().get0();
+						if (stackMana.isEmpty()) {
+							getInventory().take0();
+						}
+						
+					}else 
+						if (stackMana.getItem() instanceof IManaItem){
+							if (wandManaToTablet) avatarToTablet(stackMana);
+							else tabletToAvatar(stackMana);
+						}
 				}
 				else //is a tool				
 					if(type1==ItemStackType.Types.ROD_WORK) { //left click a block					
@@ -237,16 +258,10 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	}
 	
 
-	@Override
-	public boolean canRecieveManaFromBursts() {
-		return getInventory().haveItem() && getInventory().getType0()!=ItemStackType.Types.MANA;
-	}
-	
 	
    private void tabletToAvatar	( ItemStack stack) {
 	   if(getWorld().isRemote) return;
-	   if (!isAvatarTick()) return;
-	   
+	   if (!isAvatarTick()) return;	   
 	
 	   IManaItem tablet=(IManaItem)stack.getItem();
 	   int manaActualTablet=tablet.getMana(stack);
@@ -463,19 +478,53 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	
 
     }
-			
+
+	
+	
+	public boolean haveMana(){
+		return (manaAvatar>=200);
+	}
+	
+	
 	@Override
-	public boolean isFull() {
-		return manaAvatar >= MAX_MANA;
+	public boolean isOutputtingPower() {
+		return wandManaToTablet;
 	}
 
+
+	@Override
+	public EnumDyeColor getColor() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public void setColor(EnumDyeColor color) {
+		// TODO Auto-generated method stub		
+	}
 
 	@Override
 	public int getCurrentMana() {
 		return manaAvatar;
 	}
 
+	@Override
+	public boolean isFull() {
+		return manaAvatar >= MAX_MANA;
+	}
 
+	@Override
+	public void recieveMana(int mana) {
+		this.manaAvatar = Math.max(0, Math.min(MAX_MANA, this.manaAvatar + mana));
+		markDirty();		
+	}
+	
+
+	@Override
+	public boolean canRecieveManaFromBursts() {
+		return getInventory().haveItem() && getInventory().getType0()!=ItemStackType.Types.MANA;
+	}
 
 	@Override
 	public EnumFacing getAvatarFacing() {
@@ -498,10 +547,9 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		return enabled;
 	}
 
-	@Override
-	public void recieveMana(int mana) {
-		this.manaAvatar = Math.max(0, Math.min(MAX_MANA, this.manaAvatar + mana));
-		markDirty();		
+
+	public void setEnabled(boolean penabled) {
+		 this.enabled=penabled;
 	}
 	
 	@Override
@@ -562,6 +610,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			getWorld().notifyBlockUpdate(pos, state, state, 2);
 		}
 	}
+
 
 
 

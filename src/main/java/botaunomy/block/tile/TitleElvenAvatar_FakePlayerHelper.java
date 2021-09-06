@@ -42,12 +42,10 @@ public class TitleElvenAvatar_FakePlayerHelper {
 
 	protected ElvenFakePlayer elvenFakePlayer;
 	public final UUID uuid;
-	
 
 	//private static final int USE_MANA_COST = 200;
 	//private static final int ROD_MANA_COST = 200;
 	//private static final int BREAK_MANA_COST=200;
-	
 
 	private BreakingData breakingData=new BreakingData();
 	private boolean isRodRighClick=false;
@@ -59,7 +57,6 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	private WeakReference<FakePlayer>  getRefAndRetryInit() {
 		return elvenFakePlayer.getRefAndRetryInit(getWorld(), uuid, getPos(), avatar);
 	}
-	
 	
 	private class BreakingData{
 		private boolean _isBreaking=false;
@@ -300,20 +297,20 @@ public class TitleElvenAvatar_FakePlayerHelper {
         
     	//IBlockState stateBlockToBreak = getWorld().getBlockState(posBlockToBreak);
         //Block blockToBreak = stateBlockToBreak.getBlock();
-        
+
+        //if ((blockToBreak instanceof BlockCommandBlock) && !player.canUseCommandBlock())  return;
         ItemStack stackMainHand = elvenFakePlayer.stackMainHand();
         
         if (!(this.getWorld() instanceof WorldServer)) return;
         if ( player==null || !breakingData.isBreaking()) return;
         if (breakingData.blockIsAir()) return;        
         if (stackMainHand.isEmpty()) return;
-        if (stackMainHand.getItem().onBlockStartBreak(stackMainHand, breakingData.getPosBlockToBreak(), player))  return;               
-        //if ((blockToBreak instanceof BlockCommandBlock) && !player.canUseCommandBlock())  return;     
-
+        boolean notCanBeHarvested= (stackMainHand.getItem().onBlockStartBreak(stackMainHand, breakingData.getPosBlockToBreak(), player));               
+     
         
        	//blockBreakParticles
        	getWorld().playEvent(2001, breakingData.getPosBlockToBreak(), Block.getStateId(breakingData.getStateBlockToBreak()));
-       	if (breakingData.getBlockToBreak().canHarvestBlock(getWorld(), breakingData.getPosBlockToBreak() , player)) {
+       	if (!notCanBeHarvested&&breakingData.getBlockToBreak().canHarvestBlock(getWorld(), breakingData.getPosBlockToBreak() , player)) {
        		breakingData.getBlockToBreak().harvestBlock(getWorld(), player, breakingData.getPosBlockToBreak(), breakingData.getStateBlockToBreak(), null, stackMainHand); //itemblock drop
        		int fortune=EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, stackMainHand) ;
        		breakingData.getBlockToBreak().dropXpOnBlockBreak(getWorld(),  breakingData.getPosBlockToBreak(),breakingData.getBlockToBreak().getExpDrop(breakingData.getStateBlockToBreak(), getWorld(), breakingData.getPosBlockToBreak(), fortune));

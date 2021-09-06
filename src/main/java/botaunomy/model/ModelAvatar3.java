@@ -140,7 +140,7 @@ public class ModelAvatar3 extends ModelBase
 			    
 			
 			
-			if (avatar!=null) {
+			if (avatar!=null && avatar.isEnabled()  ) {
 				
 				//float difscale=((float)(Math.random()*scale)/10F)-(scale/10F);
 				avatar.updateRotatePoints(points,rndForPoints,elapsed);

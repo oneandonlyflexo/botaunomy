@@ -10,7 +10,6 @@ package botaunomy.proxy;
 import java.io.File;
 
 import botaunomy.*;
-import botaunomy.client.render.SecuencesAvatar;
 import botaunomy.config.Config;
 import botaunomy.network.ModSimpleNetworkChannel;
 import botaunomy.registry.ModRegistry;

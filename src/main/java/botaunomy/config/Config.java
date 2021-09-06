@@ -19,7 +19,7 @@ public class Config {
 	static final String CATEGORY_DIMENSION = "dimensions";
 
     // This values below you can access elsewhere in your mod:
-    private static String toolsCanBeUsedtoBreak = "axe;pickaxe;hoe;shovel;hatchet";
+    private static String toolsCanBeUsedtoBreak = "axe;pickaxe;hoe;shovel;hatchet;shears";
     private static String toolsCanBeUsedWithEntities= "bucket;bowl";
     private static String toolsCanShearEntities= "shears";
     private static String toolsCanAtackEntities= "sword";

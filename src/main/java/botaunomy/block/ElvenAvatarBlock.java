@@ -286,8 +286,4 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 	}
 
 
-
-
-
-
 }
