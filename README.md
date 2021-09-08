@@ -8,7 +8,7 @@ resources so will be mid to late game Botania additions.
 
 ## Current Features
 
-* Dreamwood Avatar - upgraded avatar that can interact with the world. Think of 
+* Elven Avatar - upgraded avatar that can interact with the world. Think of 
     a more mystical, mana oriented autonomous activator.
 * Rod of Will - Rod that the elven avatar can use to right-click on blocks.
 * Rod of Toil - Rod that the elven avatar can use combined with tools to left click on blocks.
@@ -39,4 +39,7 @@ Botaunomy is licensed under the [Creative Commons BY-SA-NC 4.0 License](https://
 Copyright (C) 2017 Jeremy Grozavescu 
 Copyright (C) 2021 Luis Cuesta
 
-<oneandonlyflexo>
+https://www.youtube.com/watch?v=op6cCDZvs_8&ab_channel=LuisCuesta
+
+https://www.youtube.com/watch?v=_6r7TypVSB8&ab_channel=LuisCuesta
+

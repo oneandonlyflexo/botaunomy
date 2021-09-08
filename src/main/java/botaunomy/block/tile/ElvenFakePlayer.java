@@ -1,6 +1,7 @@
 package botaunomy.block.tile;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
@@ -25,7 +26,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 public class ElvenFakePlayer  {
 
 	 private WeakReference<FakePlayer> refMyFakePlayer =new WeakReference<> (null);
-	 private ItemStackType.Types typePlayerToolCache;
+	 private ArrayList<ItemStackType.Types> typePlayerToolCache;
 		
 	public WeakReference<FakePlayer>  getRefAndRetryInit (World ws, UUID uname, BlockPos pos,TileElvenAvatar avatar )  {
 		if(ws.isRemote) return null;
@@ -104,7 +105,7 @@ public class ElvenFakePlayer  {
 		}
 	}
 	
-	public   ItemStackType.Types stackMainHandType(){
+	public   ArrayList<ItemStackType.Types>  stackMainHandType(){
 		return typePlayerToolCache;
 	} 
 	
@@ -141,7 +142,9 @@ public class ElvenFakePlayer  {
 				{
 					player.inventory.mainInventory.clear();
 					player.setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
-					typePlayerToolCache=ItemStackType.Types.NONE;
+					typePlayerToolCache=new ArrayList<ItemStackType.Types>();
+					typePlayerToolCache.add(ItemStackType.Types.NONE) ;
+														
 				}
 		 }
 	}	

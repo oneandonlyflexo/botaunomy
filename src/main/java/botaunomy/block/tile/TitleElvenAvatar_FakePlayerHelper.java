@@ -149,7 +149,8 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	}
 	
 	private class EmitResdstoneTimer{
-		private int beginTime;
+		
+		private int ticksElapsed;
 		private static final int PULSE_TIME=10;
 		public  boolean isEnabled=false;
 		
@@ -160,16 +161,16 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			//getWorld().getRedstonePower(targetPos, null)
 			
 			isEnabled=true;
-			beginTime=avatar.getElapsedFunctionalTicks();
+			ticksElapsed=0;
 			setState(isEnabled); 
 		}
 				
-		public void checkStopEmitRedstone(int ticksElapsed) {
+		public void checkStopEmitRedstone() {
 			if (!isEnabled) return;
-			
-			if (ticksElapsed-beginTime>PULSE_TIME) {
+			ticksElapsed++;
+			if (ticksElapsed>PULSE_TIME) {
 				isEnabled=false;
-				beginTime=0;
+				ticksElapsed=0;
 				setState(isEnabled);
 			}						
 		}
@@ -238,13 +239,13 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	}
 	
 	
-	public void updateHelper(int ticksElapsed) {		
+	public void updateHelper() {		
 		WeakReference<FakePlayer> player=getRefAndRetryInit();
 		
 		if (player!=null && breakingData.isBreaking ()) continueBreaking();				
 		else this.resetBreak();
 		
-		emitResdstoneTimer.checkStopEmitRedstone(ticksElapsed);		
+		emitResdstoneTimer.checkStopEmitRedstone();		
 	}
 		
     
@@ -252,11 +253,10 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 		if (!(this.getWorld() instanceof WorldServer)) return;
 		if (!avatar.isEnabled())return;	
-		if (isBusy()) return;
-		if (!avatar.isAvatarTick()) return;
+		if (isBusy()) return;		
 		WeakReference<FakePlayer> player = getRefAndRetryInit();
 		if (player == null) return;
-		if(elvenFakePlayer.stackMainHandType()==ItemStackType.Types.BLOCK)return;  //This ain't no block placer! , if holding a block dont use. 
+		if(elvenFakePlayer.stackMainHandType().get(0)==ItemStackType.Types.BLOCK)return;  //This ain't no block placer! , if holding a block dont use. 
 		if(avatar.getCurrentMana() < Config.breakManaCost ) return;
 		if (breakingData.isBreaking()) return; 
 		if (getWorld().isAirBlock(getTargetPos())) return;
@@ -356,12 +356,10 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 		
 		if (!avatar.isEnabled())return;		
-		if (isBusy()) return;
-		if (!avatar.isAvatarTick()) return;
+		if (isBusy()) return;		
 		WeakReference<FakePlayer> avatarPlayer = getRefAndRetryInit();
 		if (avatarPlayer == null) return;
 		
-		//getElapsedFunctionalTicks
 		if(avatar.getCurrentMana() >= Config.rodManaCost) {
 	
 			boolean interactedWithBlock = false;
@@ -375,7 +373,12 @@ public class TitleElvenAvatar_FakePlayerHelper {
 					checkManaIsEmpty();
 					emitResdstoneTimer.emitRedstone();
 					if(avatar.getWorld() instanceof WorldServer) {
-						new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+						if (!elvenFakePlayer.stackMainHand().isEmpty())
+							new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+						else {
+								new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
+								this.inventoryToFakePlayer();
+							 }
 						new MessageMana(getPos(),avatar.getCurrentMana());
 						avatar.getWorld().markChunkDirty(targetPos, avatar);
 					}
@@ -389,7 +392,6 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	public void beginUse( ) {
 
 		if (!avatar.isEnabled()) return;
-		if (!avatar.isAvatarTick()) return;
 		if (elvenFakePlayer.stackMainHand().isEmpty()) return;
 		if(avatar.getCurrentMana() < Config.useManaCost) return;
 		
@@ -444,7 +446,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		boolean result = false;
 		
 		ItemStack tool=elvenFakePlayer.stackMainHand();
-		if (elvenFakePlayer.stackMainHandType()==ItemStackType.Types.SHEAR) { // shears return true when entity ishearable is false, we must check before
+		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.SHEAR)) { // shears return true when entity ishearable is false, we must check before
 			if 	(entity instanceof net.minecraftforge.common.IShearable) {				
 				BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
 				boolean entityShareable=((net.minecraftforge.common.IShearable)entity).isShearable(tool, entity.world, pos);
@@ -454,7 +456,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			}
 		}
 		
-		if (elvenFakePlayer.stackMainHandType()==ItemStackType.Types.SHEAR||elvenFakePlayer.stackMainHandType()==ItemStackType.Types.USE ) {
+		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.SHEAR)||ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.USE) ) {
 			
 			String previosName=elvenFakePlayer.stackMainHand().getUnlocalizedName();
 			EnumActionResult interaction = avatarPlayer.get().interactOn(entity, EnumHand.MAIN_HAND);
@@ -468,7 +470,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 				this.fakePlayerToInventory();
 			return result;
 		}
-		if (elvenFakePlayer.stackMainHandType()==ItemStackType.Types.KILL && entity instanceof EntityLivingBase) {
+		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.KILL) && entity instanceof EntityLivingBase) {
 			
 			avatarPlayer.get().attackTargetEntityWithCurrentItem(entity);
 			//float damage = getAttackDamage(elvenFakePlayer.stackMainHand(), (EntityLivingBase)entity);
@@ -584,8 +586,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 
 		if (isBusy()) return;
 		
-		//getElapsedFunctionalTicks
-		if(avatar.getCurrentMana() >= Config.rodManaCost && avatar.isAvatarTick()) {
+		if(avatar.getCurrentMana() >= Config.rodManaCost) {
 	
 			boolean interactedWithBlock = false;
 			WeakReference<FakePlayer> avatarPlayer = getRefAndRetryInit();
@@ -619,7 +620,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			BlockPos targetPos)
 	{
 		
-		 if(elvenFakePlayer.stackMainHandType()==ItemStackType.Types.BLOCK){
+		 if(elvenFakePlayer.stackMainHandType().get(0)==ItemStackType.Types.BLOCK){
 			//This ain't no block placer!
 			return false;
 		}
@@ -650,7 +651,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			BlockPos targetPos)
 	{
 			
-		if(elvenFakePlayer.stackMainHandType()==ItemStackType.Types.BLOCK)  {
+		if(elvenFakePlayer.stackMainHandType().get(0)==ItemStackType.Types.BLOCK)  {
 			//This ain't no block placer!
 			return false;
 		}

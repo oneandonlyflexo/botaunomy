@@ -11,6 +11,7 @@
 
 package botaunomy.block;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import botaunomy.item.RodItem;
@@ -163,17 +164,17 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 			
 			TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
 			ItemStack stackOnRealPlayer = realPlayer.getHeldItem(hand);	//getHeldItemMainhand()		
-			ItemStackType.Types stackOnRealPlayerType=ItemStackType.getTypeTool(stackOnRealPlayer);
+			ArrayList<ItemStackType.Types>  stackOnRealPlayerType=ItemStackType.getTypeTool(stackOnRealPlayer);
 			
-			boolean rodWorkOnPlayer= (stackOnRealPlayer.getItem() instanceof RodItem) && stackOnRealPlayerType==ItemStackType.Types.ROD_WORK;		
+			boolean rodWorkOnPlayer= (stackOnRealPlayer.getItem() instanceof RodItem) && ItemStackType.isStackType(stackOnRealPlayerType,ItemStackType.Types.ROD_WORK);		
 			boolean wandOnPlayer=stackOnRealPlayer.getUnlocalizedName().equals("item.twigWand"); 
 			//boolean rodWillOnAvatar= (stackOnAvatar.getItem() instanceof RodItem) && ItemStackType.getTypeTool(stackOnAvatar)==ItemStackType.Types.ROD_WILL;
 			
-			if(avatar.getInventory().getType1()==ItemStackType.Types.ROD_WORK) {//rod_work to player				
+			if(ItemStackType.isStackType(  avatar.getInventory().getType1() , ItemStackType.Types.ROD_WORK)) {//rod_work to player				
 				ItemHandlerHelper.giveItemToPlayer(realPlayer, avatar.getInventory().take1());
 				avatar.markDirty();	
 			}else
-				if(avatar.getInventory().getType0()!=ItemStackType.Types.NONE && !rodWorkOnPlayer) { //from avatar to player					
+				if(avatar.getInventory().getType0().get(0)!=ItemStackType.Types.NONE && !rodWorkOnPlayer) { //from avatar to player					
 					if (!wandOnPlayer) {
 						ItemHandlerHelper.giveItemToPlayer(realPlayer, avatar.getInventory().take0());
 						return true;
@@ -186,14 +187,14 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 					{  																
 						boolean dontGive;						
 						dontGive=wandOnPlayer; //dont let give botania twigwand or block
-						dontGive|=(stackOnRealPlayerType == ItemStackType.Types.BLOCK); //is a block, not tool
-						dontGive|=(stackOnRealPlayerType == ItemStackType.Types.NONE);
+						dontGive|=(ItemStackType.isStackType(stackOnRealPlayerType , ItemStackType.Types.BLOCK)); //is a block, not tool
+						dontGive|=(ItemStackType.isStackType(stackOnRealPlayerType , ItemStackType.Types.NONE));
 									
 						if (wandOnPlayer) avatar.onWanded(realPlayer, avatar.getInventory().get0());
 						if (!dontGive)							
 						{																								
 							if (rodWorkOnPlayer) {
-								if (avatar.getInventory().getType0()==ItemStackType.Types.BREAK) {
+								if (ItemStackType.isStackType( avatar.getInventory().getType0(),ItemStackType.Types.BREAK)) {
 									avatar.getInventory().set1(stackOnRealPlayer.splitStack(1));
 									//rod_work to left hand , only if tools is break type, use type is always righclick, no need of this rod.		
 									avatar.resetBreak();

@@ -19,13 +19,13 @@ public class Config {
 	static final String CATEGORY_DIMENSION = "dimensions";
 
     // This values below you can access elsewhere in your mod:
-    private static String toolsCanBeUsedtoBreak = "axe;pickaxe;hoe;shovel;hatchet;shears";
+    private static String toolsCanBeUsedOnBlock = "axe;pickaxe;hoe;shovel;hatchet;shears;dyePowder.white";
     private static String toolsCanBeUsedWithEntities= "bucket;bowl";
     private static String toolsCanShearEntities= "shears";
     private static String toolsCanAtackEntities= "sword";
-    private static String itemsContainMana= "manatablet";
+    private static String itemsContainMana= "manatablet;capacitor";
     
-    public static String[] breakingToolsList;
+    public static String[] onBlockToolsList;
     public static String[] entitiesToolsList;
     public static String[] entitiesShearsList;
     public static String[] entitiesAtacksList;
@@ -59,10 +59,10 @@ public class Config {
         cfg.addCustomCategoryComment(CATEGORY_GENERAL, "General configuration");
         // cfg.getBoolean() will get the value in the config if it is already specified there. If not it will create the value.        
         //boolean = cfg.getBoolean("nameBoolean", CATEGORY_GENERAL, , "Set to false if you don't like this tutorial");
-        toolsCanBeUsedtoBreak = cfg.getString("toolsCanBeUsedtoBreak", CATEGORY_GENERAL, toolsCanBeUsedtoBreak, "Set name of tools , or part of name, than can be used, separated by ;");
+        toolsCanBeUsedOnBlock = cfg.getString("toolsCanBeUsedOnBlock", CATEGORY_GENERAL, toolsCanBeUsedOnBlock, "Set name of tools , or part of name, than can be used on block, separated by ;");
         toolsCanBeUsedWithEntities = cfg.getString("toolsCanBeUsedWithEntities", CATEGORY_GENERAL, toolsCanBeUsedWithEntities, "Set name of tools , or part of name, than can be used, separated by ;");
         toolsCanShearEntities = cfg.getString("toolsCanBeShearEntities", CATEGORY_GENERAL, toolsCanShearEntities, "Set name of tools , or part of name, than can be used to shear, separated by ;");
-        toolsCanAtackEntities = cfg.getString("toolsCanAtackEntities", CATEGORY_GENERAL, toolsCanAtackEntities, "Set name of tools , or part of name, than can be used to atack, separated by ;");
+        toolsCanAtackEntities = cfg.getString("toolsCanAtackEntities", CATEGORY_GENERAL, toolsCanAtackEntities, "Set name of tools , or part of name, than can be used to attack, separated by ;");
         itemsContainMana = cfg.getString("itemContainMana", CATEGORY_GENERAL, itemsContainMana, "Set name of items , or part of name, than can contain mana, separated by ;");
         
         useManaCost=cfg.getInt("UseManaCost", CATEGORY_GENERAL, useManaCost, 50, 1000, "Mana cost each time avatar uses a tool on entity");
@@ -71,7 +71,7 @@ public class Config {
         
         //is needed to check if had shear , by defaut returns always true.
         
-        breakingToolsList = toolsCanBeUsedtoBreak.split(";");
+        onBlockToolsList = toolsCanBeUsedOnBlock.split(";");
         entitiesToolsList = toolsCanBeUsedWithEntities.split(";");
         entitiesShearsList = toolsCanShearEntities.split(";");
         entitiesAtacksList = toolsCanAtackEntities.split(";");
