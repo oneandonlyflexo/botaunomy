@@ -57,7 +57,7 @@ public class ElvenFakePlayerHandler  {
 		return new  WeakReference<FakePlayer> ((FakePlayer)(refMyFakePlayer.get())) ;
 	}
 	
-	private class ElvenFakePlayer extends FakePlayer{
+	public class ElvenFakePlayer extends FakePlayer{
 
 		public ElvenFakePlayer(WorldServer world, GameProfile name) {
 			super(world, name);

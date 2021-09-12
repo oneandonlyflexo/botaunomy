@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.item.IManaDissolvable;
 import vazkii.botania.api.mana.IManaItem;
 
@@ -24,6 +25,7 @@ public class ItemStackType {
     	JUSTRC,
     	ROD_WILL,
     	ROD_WORK,
+    	ROD_AVATAR,
     	BLOCK
       }
     
@@ -95,6 +97,10 @@ public class ItemStackType {
 					break;				
 				}
 		}			
+		
+		if (i.getItem() instanceof IAvatarWieldable)
+			sal.add(Types.ROD_AVATAR);
+		
 		if (sal.size()==0)
 			if (Block.getBlockFromItem(i.getItem()) != Blocks.AIR) sal.add(Types.BLOCK);
 		

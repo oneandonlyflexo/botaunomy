@@ -256,6 +256,12 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	}
 		
     
+	public void sneak(boolean isSneaking) {
+		FakePlayer player=getRefAndRetryInit().get();
+		if (player.isSneaking()!=isSneaking)
+			player.setSneaking(isSneaking);
+	}
+	
 	public void  beginBreak() {
 		
 		if (!(this.getWorld() instanceof WorldServer)) return;

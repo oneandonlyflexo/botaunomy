@@ -1,4 +1,4 @@
-![](src/main/resources/assets/botaunomy/logo.png)
+![](resources/logo3.png)
 
 ## The Botanical Autonomy Mod!
 
@@ -12,15 +12,17 @@ resources so will be mid to late game Botania additions.
     a more mystical, mana oriented autonomous activator.
 * Rod of Will - Rod that the elven avatar can use to right-click on blocks.
 * Rod of Toil - Rod that the elven avatar can use combined with tools to left click on blocks.
-* You can use axes, picks, hoes ... to break blocks.
-* You can use shear and tools on entities
+* You can use pickaxes,hoes,hatchet ... to break blocks.
+* You can use tools , like shear on entities
 * Can attack entities
-* Animated when breaking blocks or using tools.
+* Mana can be transferred with a manatablet giving it to the avatar.
+* Can use internal mana of the avatar with botania tools
+* Can use rods like livingwood avatar.
+* Animations when breaking blocks or using tools.
 * You can insert tools to the avatar with a hopper.
-* Redstone pulse value 1 when mana is consumed.
-* Avatar is disabled when there is a strong redstone signal.
-* MainHand Command says the name of the element of the player's main hand.
-* Mana can be transferred to or form mana tablet on main hand of avatar.
+* Emits a redstone pulse (value 1) when mana is consumed.
+* Avatar is disabled when there is a strong redstone signal (14-15).
+* MainHand Command prints the name of the element on the player's main hand.
 
 ## Credits
 
@@ -36,7 +38,8 @@ Please do add this mod to your modpack! I only ask you let me know on Twitter:
 
 ![](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)  
 Botaunomy is licensed under the [Creative Commons BY-SA-NC 4.0 License](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
-Copyright (C) 2017 Jeremy Grozavescu 
+Copyright (C) 2017 Jeremy Grozavescu
+
 Copyright (C) 2021 Luis Cuesta
 
 https://www.youtube.com/watch?v=op6cCDZvs_8&ab_channel=LuisCuesta

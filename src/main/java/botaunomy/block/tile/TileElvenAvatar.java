@@ -13,8 +13,10 @@
  ******************************************************************************/
 
 //TODO
-//use item, without block or entity, like standard Avatar
-//Code to load a json model (generate code on air).
+//use item, without block or entity
+//spawner activation . (use rod and consume mana).
+//Comparator, the amount of mana
+//Code to load a json model.
 
 
 package botaunomy.block.tile;
@@ -47,6 +49,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.item.IAvatarTile;
+import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.item.IManaDissolvable;
 import vazkii.botania.api.mana.IManaItem;
 import vazkii.botania.api.mana.IManaPool;
@@ -189,27 +192,26 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	@Override
 	public  void  update() {
 		
+		//everytick server and client side
+		ArrayList<ItemStackType.Types>  type0=getInventory().getType0();
+		ArrayList<ItemStackType.Types>  type1=getInventory().getType1();
+		
+		if (ItemStackType.isStackType( type0,ItemStackType.Types.ROD_AVATAR)) {
+			((IAvatarWieldable)(getInventory().get0().getItem())).onAvatarUpdate(this, getInventory().get0());			
+		}
+		
 		if (getWorld().isRemote) return;
-
+		
 		boolean enabledBeforeRedstone=enabled;
 		enabled = true;
-		for(EnumFacing dir : EnumFacing.VALUES) {
+		for(EnumFacing dir : EnumFacing.VALUES) {// EnumFacing.HORIZONTALS
 			int redstoneSide = world.getRedstonePower(pos.offset(dir), dir);
 			if(redstoneSide >= 14) {
 				enabled = false;				
 				break;
 			}
 		}
-		/*
-		if (enabled)
-			for(EnumFacing dir : EnumFacing.HORIZONTALS) { //check ground level
-				int redstoneSide = world.getRedstonePower(pos.offset(EnumFacing.DOWN).offset(dir), dir);
-				if(redstoneSide >= 14) {
-					enabled = false;				
-					break;
-				}
-			}	
-		*/	
+	
 		if (enabledBeforeRedstone!=enabled) {
 			new MessageEnabled (getPos(),enabled);
 			if (enabled) this.ticksElapsed=0;
@@ -221,10 +223,6 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 					resetBreak();
 				}	
 		}
-	
-		
-		ArrayList<ItemStackType.Types>  type0=getInventory().getType0();
-		ArrayList<ItemStackType.Types>  type1=getInventory().getType1();
 		
 		if(isAvatarTick()||(enabledBeforeRedstone!=enabled)) { //redstone signal forces change
 			if(getInventory().haveItem()) {
@@ -259,7 +257,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 							else								
 								fakePlayerHelper.beginBreak(); 						
 						if (ItemStackType.isStackType( type0,ItemStackType.Types.USE)||ItemStackType.isStackType( type0,ItemStackType.Types.SHEAR)||ItemStackType.isStackType( type0,ItemStackType.Types.KILL)) fakePlayerHelper.beginUse();
-						if (ItemStackType.isStackType( type0,ItemStackType.Types.JUSTRC)) fakePlayerHelper.justRightClick(this);						 
+						if (ItemStackType.isStackType( type0,ItemStackType.Types.JUSTRC)) fakePlayerHelper.justRightClick(this);														
 					}
 						
 			}

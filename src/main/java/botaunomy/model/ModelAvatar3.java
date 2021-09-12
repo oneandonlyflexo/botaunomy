@@ -52,15 +52,15 @@ public class ModelAvatar3 extends ModelBase
 		
 		leftarm= new ModelRenderer(this);
 		leftarm.setRotationPoint(4F,14F,0.5F);
-		leftarm.cubeList.add(new ModelBox(leftarm, 0, 20, -1F,0F,-1.5F,2,6,3, 0.0F, false));
+		leftarm.cubeList.add(new ModelBox(leftarm, 0, 20, -1F,0F,-1.5F,2,6,3, 0.0F, true));
 	
 		rightleg= new ModelRenderer(this);
 		rightleg.setRotationPoint(-1.5F,19F,0.5F);
-		rightleg.cubeList.add(new ModelBox(rightleg, 12, 20, -1.5F,-1F,-1.5F,3,6,3, 0.0F, false));
+		rightleg.cubeList.add(new ModelBox(rightleg, 0, 20, -1.5F,-1F,-1.5F,3,6,3, 0.0F, false));
 	
 		leftleg= new ModelRenderer(this);
 		leftleg.setRotationPoint(1.5F,19F,0.5F);
-		leftleg.cubeList.add(new ModelBox(leftleg, 12, 20, -1.5F,-1F,-1.5F,3,6,3, 0.0F, false));
+		leftleg.cubeList.add(new ModelBox(leftleg, 0, 20, -1.5F,-1F,-1.5F,3,6,3, 0.0F, true));
 
 		head= new ModelRenderer(this);
 		head.setRotationPoint(0F,14F,0F);

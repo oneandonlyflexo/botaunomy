@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import vazkii.botania.api.item.IAvatarWieldable;
 import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import botaunomy.item.RodItem;
@@ -110,15 +111,19 @@ public class RenderTileElvenAvatar extends TileEntitySpecialRenderer<TileElvenAv
 				if((stack!=null)&&!stack.isEmpty()) {
 
 					renderTool(avatar,stack,0.6F,true) ;
-
 					if (avatar.haveMana()) {																		
 						if (stack.getItem() instanceof RodItem) {
 							RodItem willrod = (RodItem) stack.getItem();								
-								Minecraft.getMinecraft().renderEngine.bindTexture(willrod.getOverlayResource());
-							}
-							else
-								Minecraft.getMinecraft().renderEngine.bindTexture(overlayTexture);														 
-							 renderOverlay(avatar,pticks,risearm,1.01F);
+							Minecraft.getMinecraft().renderEngine.bindTexture(willrod.getOverlayResource());
+						}
+						else if (stack.getItem() instanceof IAvatarWieldable)  {
+								IAvatarWieldable wieldable = (IAvatarWieldable) stack.getItem();
+								Minecraft.getMinecraft().renderEngine.bindTexture(wieldable.getOverlayResource(avatar, stack));
+							 }													
+							 else
+								Minecraft.getMinecraft().renderEngine.bindTexture(overlayTexture);
+												
+						renderOverlay(avatar,pticks,risearm);
 					}
 				}
 				
@@ -167,9 +172,12 @@ public class RenderTileElvenAvatar extends TileEntitySpecialRenderer<TileElvenAv
 		GlStateManager.popMatrix();		
 	}
 	
-	private void renderOverlay(TileElvenAvatar avatar,float pticks,boolean risearm,float s) {
-		
-		GlStateManager.pushMatrix();
+
+	
+	private void renderOverlay(TileElvenAvatar avatar,float pticks,boolean risearm) {	
+
+		float s = 1.01F;
+		GlStateManager.pushMatrix();		
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.scale(s, s, s);
@@ -179,9 +187,21 @@ public class RenderTileElvenAvatar extends TileEntitySpecialRenderer<TileElvenAv
 		int lightmapY = light / 65536;
 		OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lightmapX, lightmapY);
 		float alpha = (float) Math.sin(ClientTickHandler.ticksInGame / 20D) / 2F + 0.5F;
-		GlStateManager.color(1F, 1F, 1F, alpha + 0.183F);												
-		model.render(avatar,pticks,risearm);														
-		GlStateManager.popMatrix();
-		
+		GlStateManager.color(1F, 1F, 1F, alpha + 0.183F);
+		model.render(avatar,pticks,risearm);
+		GlStateManager.popMatrix();	
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
