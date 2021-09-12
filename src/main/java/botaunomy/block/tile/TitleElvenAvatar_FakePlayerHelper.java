@@ -18,8 +18,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Enchantments;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -28,6 +30,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
+import vazkii.botania.api.mana.IManaUsingItem;
+import vazkii.botania.common.item.equipment.tool.ToolCommons;
 //import net.minecraft.util.DamageSource;
 //import net.minecraft.inventory.EntityEquipmentSlot;
 //import net.minecraft.entity.SharedMonsterAttributes;
@@ -40,13 +44,14 @@ public class TitleElvenAvatar_FakePlayerHelper {
 
 	TileElvenAvatar avatar;
 
-	protected ElvenFakePlayer elvenFakePlayer;
+	protected ElvenFakePlayerHandler elvenFakePlayer;
 	public final UUID uuid;
 
 	//private static final int USE_MANA_COST = 200;
 	//private static final int ROD_MANA_COST = 200;
 	//private static final int BREAK_MANA_COST=200;
 
+	private static final int MANA_PER_TOOLDAMAGE=30;
 	private BreakingData breakingData=new BreakingData();
 	private boolean isRodRighClick=false;
 	private boolean blockRighClick=false;
@@ -55,7 +60,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	int entitieIndex=0;
 	private EmitResdstoneTimer emitResdstoneTimer=new EmitResdstoneTimer();
 	private WeakReference<FakePlayer>  getRefAndRetryInit() {
-		return elvenFakePlayer.getRefAndRetryInit(getWorld(), uuid, getPos(), avatar);
+		return  elvenFakePlayer.getRefAndRetryInit(getWorld(), uuid, getPos(), avatar);
 	}
 	
 	private class BreakingData{
@@ -91,16 +96,16 @@ public class TitleElvenAvatar_FakePlayerHelper {
 			return getWorld().getBlockState(posBlockToBreak).getBlock();
 		}
 		
-		public void addDamage(float damage) {
+		public void addBlockDamage(float damage) {
 			curBlockDamageMP+=damage;
 		}
 		
-		public void addDamage(EntityPlayer player) {
+		public void addBlockDamage(EntityPlayer player) {
 		       IBlockState iblockstate = getWorld().getBlockState(posBlockToBreak);
-		       addDamage( iblockstate.getPlayerRelativeBlockHardness(player, getWorld(), posBlockToBreak));
+		       addBlockDamage( iblockstate.getPlayerRelativeBlockHardness(player, getWorld(), posBlockToBreak));
 		}
 		
-		private int readDamage() {
+		private int readBlockDamage() {
 			return (int)(curBlockDamageMP * 10.0 - 1);
 		}	
 		public boolean blockIsFullDamage() {
@@ -116,7 +121,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		}
 		
 		public void sendBlockBreakProgress(EntityPlayer player) {
-			getWorld().sendBlockBreakProgress(player.getEntityId(), posBlockToBreak, readDamage());
+			getWorld().sendBlockBreakProgress(player.getEntityId(), posBlockToBreak, readBlockDamage());
 		}
 		
 		public void readPacketNBT(NBTTagCompound par1nbtTagCompound) {			
@@ -201,7 +206,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar,UUID puuid) {
 		avatar=pavatar;
 		uuid=puuid;	
-		elvenFakePlayer=new ElvenFakePlayer(avatar.getWorld(), puuid, avatar.getPos(),pavatar);
+		elvenFakePlayer=new ElvenFakePlayerHandler(avatar.getWorld(), puuid, avatar.getPos(),pavatar);
 	}
 	
 	public void inventoryToFakePlayer() {
@@ -242,6 +247,8 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	public void updateHelper() {		
 		WeakReference<FakePlayer> player=getRefAndRetryInit();
 		
+		
+		if (player!=null) player.get().onUpdate();		
 		if (player!=null && breakingData.isBreaking ()) continueBreaking();				
 		else this.resetBreak();
 		
@@ -279,7 +286,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
        }
        
        FakePlayer player=getRefAndRetryInit().get();       
-       breakingData.addDamage(player);
+       breakingData.addBlockDamage(player);
 
 	   if (breakingData.blockIsFullDamage()) {
 		    breakingData.sendBlockBreakProgress100(player);	       
@@ -300,6 +307,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 
         //if ((blockToBreak instanceof BlockCommandBlock) && !player.canUseCommandBlock())  return;
         ItemStack stackMainHand = elvenFakePlayer.stackMainHand();
+        Item itemStackMainHand=stackMainHand.getItem();
         
         if (!(this.getWorld() instanceof WorldServer)) return;
         if ( player==null || !breakingData.isBreaking()) return;
@@ -314,17 +322,22 @@ public class TitleElvenAvatar_FakePlayerHelper {
        		breakingData.getBlockToBreak().harvestBlock(getWorld(), player, breakingData.getPosBlockToBreak(), breakingData.getStateBlockToBreak(), null, stackMainHand); //itemblock drop
        		int fortune=EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, stackMainHand) ;
        		breakingData.getBlockToBreak().dropXpOnBlockBreak(getWorld(),  breakingData.getPosBlockToBreak(),breakingData.getBlockToBreak().getExpDrop(breakingData.getStateBlockToBreak(), getWorld(), breakingData.getPosBlockToBreak(), fortune));
+       		
+       		if(itemStackMainHand instanceof IManaUsingItem && ((IManaUsingItem) itemStackMainHand).usesMana(stackMainHand)) {
+       			ToolCommons.damageItem(stackMainHand, 1, player, MANA_PER_TOOLDAMAGE );
+       		}else 
+       			stackMainHand.onBlockDestroyed(getWorld(), breakingData.getStateBlockToBreak(), breakingData.getPosBlockToBreak(), player);//set use
        	}
-       	stackMainHand.onBlockDestroyed(getWorld(), breakingData.getStateBlockToBreak(), breakingData.getPosBlockToBreak(), player);//set use
+      
         boolean flag = breakingData.getBlockToBreak().removedByPlayer(breakingData.getStateBlockToBreak(), getWorld(), breakingData.getPosBlockToBreak(), player, false);
-          if (flag) {                	
+        if (flag) {                	
         	  breakingData.getBlockToBreak().onBlockDestroyedByPlayer(getWorld(), breakingData.getPosBlockToBreak(), breakingData.getStateBlockToBreak());                            
-          }
+        }
                 
           // if (player.experience>0)                
           //player.sendStatusMessage(new TextComponentString(TextFormatting.GREEN + "XP->" +player.experience), false);	
             	            	
-          if (stackMainHand.isEmpty()) {
+        if (stackMainHand.isEmpty()) {
               net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, stackMainHand, EnumHand.MAIN_HAND);                    
               avatar.getInventory().empty0();              
               //elvenFakePlayer.inventoryToFakePlayer(avatar);
@@ -333,11 +346,11 @@ public class TitleElvenAvatar_FakePlayerHelper {
     			new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);    			
     		  }
                     
-         }else {        	 
+        }else {        	 
                	avatar.getInventory().set0(stackMainHand.copy());               		
                	new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
          	   }          
-      }
+    }
    
     
 	private BlockPos getTargetPos() {
@@ -470,13 +483,23 @@ public class TitleElvenAvatar_FakePlayerHelper {
 				this.fakePlayerToInventory();
 			return result;
 		}
+		
 		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.KILL) && entity instanceof EntityLivingBase) {
-			
-			avatarPlayer.get().attackTargetEntityWithCurrentItem(entity);
-			//float damage = getAttackDamage(elvenFakePlayer.stackMainHand(), (EntityLivingBase)entity);
-			//entity.attackEntityFrom(DamageSource.causePlayerDamage(avatarPlayer.get()), damage);
-			return true;
+			if (avatarPlayer.get().getCooledAttackStrength(0)==1) {
+				avatarPlayer.get().attackTargetEntityWithCurrentItem(entity);				
+				/*
+				float damage=0;
+				if (elvenFakePlayer.stackMainHand().getItem() instanceof ItemSword)
+			        {
+						damage = ((ItemSword) elvenFakePlayer.stackMainHand().getItem()).getAttackDamage();
+			        }
+								
+				entity.attackEntityFrom(DamageSource.causePlayerDamage(avatarPlayer.get()), damage);
+				*/
+				return true;
+			}else return false;
 		}		
+		
 		return false;
 		
 	}
@@ -611,9 +634,38 @@ public class TitleElvenAvatar_FakePlayerHelper {
 				isRodRighClick=false;
 			}
 		}
-
+	}
+	
+	
+	public void justRightClick(TileElvenAvatar avatar) {
+		if (!avatar.isEnabled()) return;
+		if (isBusy()) return;				
+		if(avatar.getCurrentMana() < Config.rodManaCost) return;
+	
+		
+		
+		boolean interactedWithBlock = false;
+		WeakReference<FakePlayer> avatarPlayer = getRefAndRetryInit();
+		if (avatarPlayer == null) {
+			return;
+		}			
+		
+					
+		ActionResult<ItemStack> result =avatarPlayer.get().getHeldItemMainhand().getItem().onItemRightClick(getWorld(), avatarPlayer.get(), EnumHand.MAIN_HAND);
+		interactedWithBlock=(result.getType()==EnumActionResult.SUCCESS);
+		
+		if(interactedWithBlock) {
+				avatar.recieveMana(-Config.rodManaCost);
+				checkManaIsEmpty();
+				emitResdstoneTimer.emitRedstone();
+				if(avatar.getWorld() instanceof WorldServer) {
+					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+					new MessageMana(getPos(),avatar.getCurrentMana());
+				}
+		}		
 	}
 
+	
 	private boolean interactBlock( //Always rightclick
 			TileElvenAvatar tileElvenAvatar,
 			WeakReference<FakePlayer> fakePlayer,
@@ -688,23 +740,6 @@ public class TitleElvenAvatar_FakePlayerHelper {
 
 /*
  
-//righclick without entity
-//result =avatarPlayer.get().getHeldItemMainhand().getItem().onItemRightClick(world, avatarPlayer.get(), EnumHand.MAIN_HAND);
-
-
-private void dropInventory(World world, WeakReference<FakePlayer> avatarPlayer, BlockPos pos) {
-	ItemStack mainHand = avatarPlayer.get().getHeldItemMainhand();
-	for (ItemStack s : avatarPlayer.get().inventory.mainInventory) {
-		if (!s.isEmpty() && !s.equals(mainHand)) {
-			EntityItem entityItem = new EntityItem(world, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, s.copy());
-			if (world.isRemote == false) {
-				world.spawnEntity(entityItem);
-			}
-			s.setCount(0);
-		}
-	}
-}
-
 //Detect entities
 Vec3d base;
 Vec3d target;

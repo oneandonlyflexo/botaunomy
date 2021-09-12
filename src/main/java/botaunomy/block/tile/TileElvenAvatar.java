@@ -13,7 +13,7 @@
  ******************************************************************************/
 
 //TODO
-//grabar video , publicar mod
+//use item, without block or entity, like standard Avatar
 //Code to load a json model (generate code on air).
 
 
@@ -66,7 +66,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	public static final int POINTS_SEQUENCE_DURATION = 125;
 	private float[][] anglePoints= new float[ModelAvatar3.NARC][ModelAvatar3.NPOINTS];
 	
-	private static final int MAX_MANA = 100000;// 1/5 ManaTablet
+	public static final int MAX_MANA = 100000;// 1/5 ManaTablet
 	private static final int AVATAR_TICK=20;
 	private static final int TABLET_BURST = 5000;
 	protected static final String TAG_ENABLED = "enabled";
@@ -78,7 +78,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 
 	protected boolean enabled=true;
 	protected int ticksElapsed;
-	protected int manaAvatar;
+	private int manaAvatar;
 		
 	private TitleElvenAvatar_FakePlayerHelper fakePlayerHelper;
 
@@ -258,11 +258,13 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 								fakePlayerHelper.rightClickBlockWhithItem();//left click a block
 							else								
 								fakePlayerHelper.beginBreak(); 						
-						if (ItemStackType.isStackType( type0,ItemStackType.Types.USE)||ItemStackType.isStackType( type0,ItemStackType.Types.SHEAR)||ItemStackType.isStackType( type0,ItemStackType.Types.KILL)) fakePlayerHelper.beginUse(); 
+						if (ItemStackType.isStackType( type0,ItemStackType.Types.USE)||ItemStackType.isStackType( type0,ItemStackType.Types.SHEAR)||ItemStackType.isStackType( type0,ItemStackType.Types.KILL)) fakePlayerHelper.beginUse();
+						if (ItemStackType.isStackType( type0,ItemStackType.Types.JUSTRC)) fakePlayerHelper.justRightClick(this);						 
 					}
 						
 			}
 		}
+		
 		if(enabled) {
 			ticksElapsed++;			
 		};

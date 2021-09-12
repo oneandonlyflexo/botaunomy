@@ -21,6 +21,7 @@ public class ItemStackType {
     	USE,
     	KILL,  
     	MANA,
+    	JUSTRC,
     	ROD_WILL,
     	ROD_WORK,
     	BLOCK
@@ -49,26 +50,51 @@ public class ItemStackType {
 		if (i.getItem() instanceof RodItem && s.contains("rod_will")) sal.add(Types.ROD_WILL);
 		if (i.getItem() instanceof RodItem && s.contains("rod_work")) sal.add(Types.ROD_WORK);
 		 
+		if (Config.onBlockToolsList!=null)
 		for(int a = 0;a<Config.onBlockToolsList.length; a++) {
-			if (s.toLowerCase().contains(Config.onBlockToolsList[a].toLowerCase())) sal.add(Types.BREAK);
+			if (s.toLowerCase().contains(Config.onBlockToolsList[a].toLowerCase())) {
+				sal.add(Types.BREAK);
+				break;//not add twice same group
+			}
 		}
+		if (Config.entitiesShearsList!=null)
 		for(int a = 0;a<Config.entitiesShearsList.length; a++) {
-			if (s.toLowerCase().contains(Config.entitiesShearsList[a].toLowerCase())) sal.add(Types.SHEAR);
+			if (s.toLowerCase().contains(Config.entitiesShearsList[a].toLowerCase())) {
+				sal.add(Types.SHEAR);
+				break;
+			}
 		}	
+		if (Config.entitiesToolsList!=null)
 		for(int a = 0;a<Config.entitiesToolsList.length; a++) {
-			if (s.toLowerCase().contains(Config.entitiesToolsList[a].toLowerCase())) sal.add(Types.USE);
+			if (s.toLowerCase().contains(Config.entitiesToolsList[a].toLowerCase())) {
+				sal.add(Types.USE);
+				break;
+			}
 		}
+		if (Config.entitiesAtacksList!=null)
 		for(int a = 0;a<Config.entitiesAtacksList.length; a++) {
-			if (s.toLowerCase().contains(Config.entitiesAtacksList[a].toLowerCase())) sal.add(Types.KILL);
+			if (s.toLowerCase().contains(Config.entitiesAtacksList[a].toLowerCase())) {
+				sal.add(Types.KILL);
+				break;
+			}
+		}
+		if (Config.itemsJustRighClickList!=null)
+		for(int a = 0;a<Config.itemsJustRighClickList.length; a++) {
+			if (s.toLowerCase().contains(Config.itemsJustRighClickList[a].toLowerCase())) {
+				sal.add(Types.JUSTRC);
+				break;
+			}
 		}	
+		if (Config.itemsContainManaList!=null)
 		for(int a = 0;a<Config.itemsContainManaList.length; a++) {
-			{
 				Item item=i.getItem();
 			    boolean haveMana=item instanceof IManaItem ;
 			    haveMana|=item instanceof IManaDissolvable ;			    
-				if (haveMana  &&  s.toLowerCase().contains(Config.itemsContainManaList[a])) sal.add(Types.MANA);
-		}	}
-		
+				if (haveMana  &&  s.toLowerCase().contains(Config.itemsContainManaList[a])) {
+					sal.add(Types.MANA);
+					break;				
+				}
+		}			
 		if (sal.size()==0)
 			if (Block.getBlockFromItem(i.getItem()) != Blocks.AIR) sal.add(Types.BLOCK);
 		
