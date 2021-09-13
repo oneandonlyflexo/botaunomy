@@ -83,23 +83,26 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 		
 	}
 
-	/*
-	private EnumFacing left(EnumFacing facing) {
-		if(facing==EnumFacing.SOUTH) return EnumFacing.WEST;
-		if(facing==EnumFacing.WEST) return EnumFacing.NORTH;
-		if(facing==EnumFacing.NORTH) return EnumFacing.EAST;
-		if(facing==EnumFacing.EAST) return EnumFacing.SOUTH;
-		return EnumFacing.DOWN;
+	@Override
+	public boolean hasComparatorInputOverride(IBlockState state) {
+		return true;
 	}
-   */	
+	
+	@Override
+	public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos){
+		
+		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
+		//int signal =(int) Math.floor(((double)avatar.getCurrentMana()/(double)TileElvenAvatar.MAX_MANA)*15d);
+		int signal =(int) Math.ceil(Math.floor(((double)avatar.getCurrentMana()/(double)TileElvenAvatar.MAX_MANA)*(15d*64d))/64d);
+		//returns 1 over 105.
+		return signal;
+	}
 
 	@Override
 	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
 		
-		//EnumFacing facing= blockState.getValue(BotaniaStateProps.CARDINALS);		
-		//if (side==left(facing)) //only emits redstone left side
-				return (blockState.getValue(POWERED) ? 1 : 0);
-		//else return 0;
+		return (blockState.getValue(POWERED) ? 1 : 0);
+
 	}
 
 	@Override

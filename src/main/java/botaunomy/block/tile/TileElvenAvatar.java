@@ -15,7 +15,6 @@
 //TODO
 //use item, without block or entity
 //spawner activation . (use rod and consume mana).
-//Comparator, the amount of mana
 //Code to load a json model.
 
 
