@@ -10,9 +10,10 @@ import com.mojang.authlib.GameProfile;
 
 import botaunomy.Botaunomy;
 import botaunomy.ItemStackType;
-import botaunomy.ModInfo;
+import botaunomy.network.MessagePlayer;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -38,156 +39,134 @@ import net.minecraftforge.event.entity.player.CriticalHitEvent;
 @Mod.EventBusSubscriber
 public class ElvenFakePlayerHandler  {
 
-	 private WeakReference<ElvenFakePlayer> refMyFakePlayer =new WeakReference<> (null);
+	 private WeakReference<FakePlayer> refMyFakePlayer =new WeakReference<> (null); //Used to make the job, but not added to world.
+	 EntityPlayer myElvenEntityPlayer=null; //Used to activate mob spawns, added to ws.playerEntities, server world and remote
 	 private ArrayList<ItemStackType.Types> typePlayerToolCache;
 	 TileElvenAvatar avatarParent;
+	 int nAvatar;
 
 	 
-	public ElvenFakePlayerHandler (World ws, UUID uname, BlockPos pos,TileElvenAvatar avatar ) {
-		//GameProfile profile = new GameProfile(uname, uname.toString());
-		init( ws,  uname,  pos, avatar );		
+	public ElvenFakePlayerHandler (World ws,  BlockPos pos,TileElvenAvatar avatar, int navatar ) {
+		MinecraftForge.EVENT_BUS.register(this);
+		nAvatar=navatar;
 		avatarParent=avatar;
-	}
+		if (ws==null)return;
+		if (!ws.isRemote) {
+			initServer( ws,  pos, avatar,nAvatar );		
+		}
 
-	public WeakReference<FakePlayer>  getRefAndRetryInit (World ws, UUID uname, BlockPos pos,TileElvenAvatar avatar )  {
+	}
+	
+	@SubscribeEvent
+	public void onCriticalHit(CriticalHitEvent evt) {		
+	  if (!evt.getEntityPlayer().world.isRemote) {
+		  if (evt.getEntityPlayer().equals(refMyFakePlayer.get())){
+	    	ItemStack itemStack=evt.getEntityPlayer().getHeldItemMainhand() ;
+	    	//if (itemStack.getItem() instanceof ItemSword) {		
+	    		Multimap<String, AttributeModifier> attr=itemStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND);
+	    		Collection<AttributeModifier> coldmg=attr.get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
+	    		float dmg=0;
+	    		for(AttributeModifier i : coldmg) {dmg= (float) i.getAmount();}
+	    		//System.out.println("DMG: "+dmg); 
+		    	evt.setResult( Event.Result.ALLOW );
+		    	evt.setDamageModifier(dmg*1.2F);
+	    	//}
+	    }
+	  }
+	}		
+
+	public WeakReference<FakePlayer>  getRefAndRetryInit (World ws,  BlockPos pos,TileElvenAvatar avatar )  {
 		if(ws.isRemote) return null;
-		
-		if (refMyFakePlayer.get()==null) init(ws, uname, pos, avatar);
-		
-		return new  WeakReference<FakePlayer> ((FakePlayer)(refMyFakePlayer.get())) ;
+		if (refMyFakePlayer==null) return null;
+		if (refMyFakePlayer.get()==null) initServer(ws, pos, avatar,nAvatar);				
+		return refMyFakePlayer;
 	}
 	
-	public class ElvenFakePlayer extends FakePlayer{
+	private void initPlayerPos(EntityPlayer player,BlockPos pos,TileElvenAvatar avatar ) {
+		
+		BlockPos spawnPos= new BlockPos(pos.getX(),pos.getY(),pos.getZ());		
+		player.setSpawnPoint(spawnPos, false);
+		player.posX=pos.getX()+0.5F;
+		player.posY=pos.getY()-0.5F;
+		player.posZ=pos.getZ()+0.5F;		
 
-		public ElvenFakePlayer(WorldServer world, GameProfile name) {
-			super(world, name);
-			MinecraftForge.EVENT_BUS.register(this);
-		}
-		
-		@Override
-	    public float getCooledAttackStrength(float adjustTicks)
-	    {
-			//System.out.println("Ticks; "+this.ticksSinceLastSwing+" getCooldownPeriod: "+this.getCooldownPeriod()); 
-			return super.getCooledAttackStrength(adjustTicks);
-		
-	        //return MathHelper.clamp(((float)this.ticksSinceLastSwing + adjustTicks) / this.getCooldownPeriod(), 0.0F, 1.0F);
-	    }
-			
-		@Override
-	    public void onUpdate()
-	    {
-	     	super.onUpdate();
-	     	++this.ticksSinceLastSwing;
-	    }
-		
-		@SubscribeEvent
-		public void onCriticalHit(CriticalHitEvent evt) {
-			
-		  if (!evt.getEntityPlayer().world.isRemote) {
-		    //if (evt.getEntityPlayer().equals(this.refMyFakePlayer.get())){
-			  if (evt.getEntityPlayer().equals(this)){
-		    	ItemStack itemStack=evt.getEntityPlayer().getHeldItemMainhand() ;
-		    	//if (itemStack.getItem() instanceof ItemSword) {		
-		    		Multimap<String, AttributeModifier> attr=itemStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND);
-		    		Collection<AttributeModifier> coldmg=attr.get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
-		    		float dmg=0;
-		    		for(AttributeModifier i : coldmg) {dmg= (float) i.getAmount();}
-		    		System.out.println("DMG: "+dmg); 
-			    	evt.setResult( Event.Result.ALLOW );
-			    	evt.setDamageModifier(dmg*1.2F);
-		    	//}
-		    }
-		  }
-		}		
 	}
 	
-	private class FakeTable extends Item implements  IManaItem{
-
-		@Override
-		public int getMana(ItemStack stack) {
-			if (avatarParent!=null)
-				return avatarParent.getCurrentMana();
-			return 0;
+	public void initClient(World w, BlockPos pos,TileElvenAvatar avatar, int navatar )  {
+		if (!w.isRemote) return;
+		UUID nameUuid=avatar.playerUUID;
+		if (nameUuid==null) return;
+		if (myElvenEntityPlayer==null) {
+			GameProfile gameProfile=new GameProfile(nameUuid, "Bot"+navatar+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
+			myElvenEntityPlayer=new ElvenEntityPlayer(w, gameProfile);			
+			((IsetSpectator)myElvenEntityPlayer).setSpectator(avatar.playerIsSpectator);
+			initPlayerPos(myElvenEntityPlayer,pos,avatar);			
+			w.playerEntities.add(myElvenEntityPlayer);
+			//w.spawnEntity(myElvenEntityPlayer);
 		}
 
-		@Override
-		public int getMaxMana(ItemStack stack) {
-			return TileElvenAvatar.MAX_MANA;
-		}
-
-		@Override
-		public void addMana(ItemStack stack, int mana) {
-			if (avatarParent!=null)
-				avatarParent.recieveMana(mana);			
-		}
-
-		@Override
-		public boolean canReceiveManaFromPool(ItemStack stack, TileEntity pool) {
-			return false;
-		}
-
-		@Override
-		public boolean canReceiveManaFromItem(ItemStack stack, ItemStack otherStack) {
-			return false;
-		}
-
-		@Override
-		public boolean canExportManaToPool(ItemStack stack, TileEntity pool) {
-			return false;
-		}
-
-		@Override
-		public boolean canExportManaToItem(ItemStack stack, ItemStack otherStack) {
-			return true;
-		}
-
-		@Override
-		public boolean isNoExport(ItemStack stack) {
-			return false;
-		}
+	}
+	
+	public void setSpectator (boolean value) {
+		if (myElvenEntityPlayer!=null)
+			((IsetSpectator)myElvenEntityPlayer).setSpectator(value);
+	}
+	
+	public boolean isSpectator() {
+		if (myElvenEntityPlayer!=null)
+			return ((IsetSpectator)myElvenEntityPlayer).getSpectator();
+		return true;
+	}
+	
+	private void setFakeConnection(ElvenFakePlayer fakeplayer) {
+		fakeplayer.connection = new NetHandlerPlayServer(FMLCommonHandler.instance().getMinecraftServerInstance(), new NetworkManager(EnumPacketDirection.SERVERBOUND), refMyFakePlayer.get()) {
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void sendPacket(Packet packetIn) {}
+		};	
 		
 	}
 	
-	private void init(World ws, UUID uname, BlockPos pos,TileElvenAvatar avatar )  {
+	private void initServer(World ws, BlockPos pos,TileElvenAvatar avatar, int navatar )  { 
 		try {
-			WorldServer wss;
-			if (ws instanceof WorldServer) {
-				wss=(WorldServer) ws;
-			}else return;
 			
-			ElvenFakePlayer player=new ElvenFakePlayer(wss,  new GameProfile(uname, ModInfo.modid));
-			refMyFakePlayer = new WeakReference<>(player);
-			
+			if (!(ws instanceof WorldServer)) return;
+			WorldServer wss=(WorldServer) ws;			
+			UUID nameUuid=avatar.playerUUID;
+			if (nameUuid==null) { 
+				nameUuid=UUID.randomUUID();
+				avatar.playerUUID=nameUuid;
+			}		
+			GameProfile gameProfile=new GameProfile(nameUuid, "Bot"+navatar+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
+			ElvenFakePlayer myFakePlayer=new ElvenFakePlayer(wss, gameProfile); //returns not espectator
+			refMyFakePlayer = new WeakReference<>(myFakePlayer);	
 			//fakePlayer = new WeakReference<FakePlayer>(FakePlayerFactory.get(ws, profile));
 			//fakePlayer = new WeakReference<>(FakePlayerUtils.get(ws, new GameProfile(uname, ModInfo.modid)));
 			
-			if (refMyFakePlayer.get() == null)	{
-				refMyFakePlayer= null;
-				return;
-			}
-			FakePlayer myFakePlayer=refMyFakePlayer.get();
-			
-			myFakePlayer.onGround = true;
-			myFakePlayer.connection = new NetHandlerPlayServer(FMLCommonHandler.instance().getMinecraftServerInstance(), new NetworkManager(EnumPacketDirection.SERVERBOUND), refMyFakePlayer.get()) {
-				@SuppressWarnings("rawtypes")
-				@Override
-				public void sendPacket(Packet packetIn) {}
-			};			
-			myFakePlayer.setSilent(true);
-		
-			myFakePlayer.posX=pos.getX()+0.5F;
-			myFakePlayer.posY=pos.getY()-0.5F;
-			myFakePlayer.posZ=pos.getZ()+0.5F;		
-			
-	
+			setFakeConnection(myFakePlayer);
+						
+			initPlayerPos((ElvenFakePlayer)myFakePlayer,pos,avatar);	
 			myFakePlayer.rotationYaw = getYaw(avatar.getAvatarFacing());						
 			myFakePlayer.rotationPitch=0;
-			myFakePlayer.setSneaking(false);
 			
-			this.inventoryToFakePlayer(avatar);
 			
+			if (myElvenEntityPlayer==null) {
+				ElvenFakePlayer myElvenEntityPlayerCopy=new ElvenFakePlayer(wss, gameProfile);						
+				myElvenEntityPlayerCopy.copyFrom(myFakePlayer, false);
+				myElvenEntityPlayerCopy.setSpectator(avatar.playerIsSpectator);
+				initPlayerPos(myElvenEntityPlayerCopy,pos,avatar);			
+				setFakeConnection(myElvenEntityPlayerCopy);
+				myElvenEntityPlayerCopy.goToSleep();
+				ws.playerEntities.add(myElvenEntityPlayerCopy); //added as player
+				myElvenEntityPlayer=myElvenEntityPlayerCopy;
+				//w.spawnEntity(myElvenEntityPlayer);
+			}	
+							
+			new MessagePlayer(pos,nameUuid); //activate client side.
+			
+			this.inventoryToFakePlayer(avatar);			
 			ItemStack fakeTablet=new ItemStack(new FakeTable());
-			player.inventory.mainInventory.set(35, fakeTablet);
+			myFakePlayer.inventory.mainInventory.set(35, fakeTablet);
 
 		}
 		catch (Exception e) {
@@ -260,6 +239,153 @@ public class ElvenFakePlayerHandler  {
 				}
 		 }
 	}	
+	
+	public interface IsetSpectator {
+
+		public void setSpectator (boolean value) ;
+		public boolean getSpectator();
+	}
+	
+	public class ElvenEntityPlayer extends EntityPlayer implements IsetSpectator{
+		private boolean spectatorValue=false; //equal to server.
+
+		public ElvenEntityPlayer(World worldIn, GameProfile gameProfileIn) {
+			super(worldIn, gameProfileIn);
+			this.onGround = true;
+			this.setSilent(true);	
+			this.setSneaking(false);
+			this.sleeping=false;			
+		}
+		
+		@Override
+		public boolean isPlayerFullyAsleep() {
+			return this.sleeping;			
+		}
+		
+		@Override
+		public void setSpectator (boolean value) {
+			spectatorValue=value;
+		}
+		
+		
+		@Override
+		public boolean getSpectator() {
+			return spectatorValue;
+		}
+	
+		@Override
+		public boolean isSpectator() {
+			return spectatorValue;
+		}
+
+		@Override
+		public boolean isCreative() {
+			return true;
+		}
+
+	}
+
+	
+	public class ElvenFakePlayer extends FakePlayer implements IsetSpectator{
+		private boolean spectatorValue=false;
+		
+		
+
+		public ElvenFakePlayer(WorldServer world, GameProfile name) {
+			super(world, name);
+			this.onGround = true;
+			this.setSilent(true);	
+			this.setSneaking(false);			
+		}
+		
+		public void  goToSleep() {
+			this.sleeping=true;
+		}
+		
+		@Override
+		public boolean isPlayerFullyAsleep() {
+			return this.sleeping;
+			
+		}
+		
+		@Override
+		public void setSpectator (boolean value) {
+			spectatorValue=value;
+		}
+		
+		@Override
+		public boolean getSpectator() {
+			return spectatorValue;
+		}
+		
+		@Override
+		public boolean isSpectator() {
+			return spectatorValue;
+		}
+		
+		@Override
+	    public float getCooledAttackStrength(float adjustTicks)
+	    {
+			return super.getCooledAttackStrength(adjustTicks);
+	    }
+			
+		@Override
+	    public void onUpdate()
+	    {
+	     	super.onUpdate();
+	     	++this.ticksSinceLastSwing;
+	    }
+				
+	}
+
+	
+	private class FakeTable extends Item implements  IManaItem{
+
+		@Override
+		public int getMana(ItemStack stack) {
+			if (avatarParent!=null)
+				return avatarParent.getCurrentMana();
+			return 0;
+		}
+
+		@Override
+		public int getMaxMana(ItemStack stack) {
+			return TileElvenAvatar.MAX_MANA;
+		}
+
+		@Override
+		public void addMana(ItemStack stack, int mana) {
+			if (avatarParent!=null)
+				avatarParent.recieveMana(mana);			
+		}
+
+		@Override
+		public boolean canReceiveManaFromPool(ItemStack stack, TileEntity pool) {
+			return false;
+		}
+
+		@Override
+		public boolean canReceiveManaFromItem(ItemStack stack, ItemStack otherStack) {
+			return false;
+		}
+
+		@Override
+		public boolean canExportManaToPool(ItemStack stack, TileEntity pool) {
+			return false;
+		}
+
+		@Override
+		public boolean canExportManaToItem(ItemStack stack, ItemStack otherStack) {
+			return true;
+		}
+
+		@Override
+		public boolean isNoExport(ItemStack stack) {
+			return false;
+		}
+		
+	}
+	
 	
 	
 }

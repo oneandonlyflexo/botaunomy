@@ -14,7 +14,7 @@
 
 //TODO
 //use item, without block or entity
-//spawner activation . (use rod and consume mana).
+//Fake players are count for sleep.
 //Code to load a json model.
 
 
@@ -25,10 +25,12 @@ import java.util.UUID;
 import org.lwjgl.opengl.GL11;
 import botaunomy.ItemStackType;
 import botaunomy.client.render.SecuencesAvatar;
+import botaunomy.config.Config;
 import botaunomy.model.ModelAvatar3;
 import botaunomy.network.MessageEnabled;
 import botaunomy.network.MessageMana;
 import botaunomy.network.MessageMoveArm;
+import botaunomy.network.MessageSpectator;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -64,10 +66,9 @@ import vazkii.botania.common.item.ModItems;
 public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile , ITickable ,IElvenAvatarItemHadlerChangedListener,IManaPool {
 	
 	public  SecuencesAvatar secuencesAvatar=new SecuencesAvatar();
-	
-	public static final int POINTS_SEQUENCE_DURATION = 125;
 	private float[][] anglePoints= new float[ModelAvatar3.NARC][ModelAvatar3.NPOINTS];
 	
+	public static final int POINTS_SEQUENCE_DURATION = 125;	
 	public static final int MAX_MANA = 100000;// 1/5 ManaTablet
 	private static final int AVATAR_TICK=20;
 	private static final int TABLET_BURST = 5000;
@@ -75,80 +76,34 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	protected static final String TAG_TICKS_ELAPSED = "ticksElapsed";
 	protected static final String TAG_MANA = "mana";
 	protected static final String TAG_WAND = "wamd";
-	
-	
+	protected static final String TAG_UUID = "uuid";
+	protected static final String TAG_SPECT = "spectator";
 
 	protected boolean enabled=true;
 	protected int ticksElapsed;
 	private int manaAvatar;
-		
+
+	
+	private static int nAvatar;
 	private TitleElvenAvatar_FakePlayerHelper fakePlayerHelper;
-
 	private boolean wandManaToTablet=true;
-	
-	@Override
-	public int getBlockMetadata() {
-		//return EnumFacing.NORTH.getIndex();
-		return 0;
-	}
-    
-	
-	@Override
-	public int getElapsedFunctionalTicks() {
-		return ticksElapsed;
-	}
+	public UUID playerUUID=null;
+	public boolean playerIsSpectator=false;
 	
 	
-	public void onWanded(EntityPlayer player, ItemStack wand) {
-		if(player == null) return;
-		if(world.isRemote) return;
-			
-		wandManaToTablet = !wandManaToTablet;
-		world.playSound(null, player.posX, player.posY, player.posZ, ModSounds.ding, SoundCategory.PLAYERS, 0.11F, 1F);
-		//player.sendStatusMessage(new TextComponentString(TextFormatting.GREEN + "->Wand Change "+String.valueOf(wandManaToTablet)), false);
-		VanillaPacketDispatcher.dispatchTEToNearbyPlayers(world, pos);		
+	public TileElvenAvatar() {	
+		super();
+		fakePlayerHelper= new TitleElvenAvatar_FakePlayerHelper(this,++nAvatar);
 	}
 
-	
-	public void renderHUD(Minecraft mc, ScaledResolution res)
-	{
-		{
-			Block avatarBlock= getWorld().getBlockState(pos).getBlock();
-			//ItemStack avatarStack = new ItemStack(avatarBlock);
-			
-			ItemStack avatarStack = new ItemStack(avatarBlock, 1, this.getBlockMetadata());
-			String name = I18n.format("Elven Avatar");//+" "+String.valueOf(wandManaToTablet); 
-			int color = 0x4444FF;
-			
-			int manaInt=manaAvatar;
-			if (manaInt>MAX_MANA) manaInt=MAX_MANA;
-			HUDHandler.drawSimpleManaHUD(color, manaInt, MAX_MANA, name, res);
-			
-			int x = res.getScaledWidth() / 2 - 11;
-			int y = res.getScaledHeight() / 2 + 30;
-		
-			GlStateManager.enableBlend();
-			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			
-			mc.renderEngine.bindTexture(HUDHandler.manaBar);
-			
-			int u = wandManaToTablet ? 22 : 0;
-			vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(x, y, 0, u, 38, 22, 15);
-			GlStateManager.color(1F, 1F, 1F, 1F);
-			
-			
-			ItemStack tablet = new ItemStack(ModItems.manaTablet);
-			ItemManaTablet.setStackCreative(tablet);
-			
-			net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
-			mc.getRenderItem().renderItemAndEffectIntoGUI(tablet, x - 20, y);
-			mc.getRenderItem().renderItemAndEffectIntoGUI(avatarStack, x + 26, y);			
-			net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
-			
-			GlStateManager.disableLighting();
-			GlStateManager.disableBlend();
-		}
-	}	
+	 public void setUUID(UUID uuid) {
+		 if (!world.isRemote)return;
+		 if (this.playerUUID==null) {
+			 this.playerUUID=uuid;
+			 this.fakePlayerHelper.elvenFakePlayer.initClient(world, pos, this, nAvatar);
+		 }
+		 this.playerUUID=uuid;
+	}
 
 	public boolean isAvatarTick() {
 		return((ticksElapsed%AVATAR_TICK==0));
@@ -178,14 +133,13 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			points[b][a].rotateAngleX=points[b][a].rotateAngleY;			
 		}		
 	}
-
-	public TileElvenAvatar() {
-		this(UUID.randomUUID());			
-	}
 	
-	public TileElvenAvatar(UUID puuid) {	
-		super();
-		fakePlayerHelper= new TitleElvenAvatar_FakePlayerHelper(this,puuid);
+	
+	public void setPlayerSpectator(boolean isSpectator) {
+		this.playerIsSpectator=isSpectator;
+		if (this.fakePlayerHelper.elvenFakePlayer.isSpectator()!=isSpectator) {
+			this.fakePlayerHelper.elvenFakePlayer.setSpectator(isSpectator);			
+		}
 	}
 	
 	@Override
@@ -198,9 +152,23 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		if (ItemStackType.isStackType( type0,ItemStackType.Types.ROD_AVATAR)) {
 			((IAvatarWieldable)(getInventory().get0().getItem())).onAvatarUpdate(this, getInventory().get0());			
 		}
+
 		
 		if (getWorld().isRemote) return;
+		//-----------------------------------------------------------------------------------
 		
+		if(isAvatarTick()) {							
+			int manaCost=AVATAR_TICK*Config.mobSpawnerCostPertick;					
+			boolean haveMana=(manaAvatar>=manaCost);			
+			boolean haveEye=ItemStackType.isStackType(getInventory().cacheType0,ItemStackType.Types.EYE);
+			boolean haveToBeSpectator=!haveEye||!haveMana;
+			if (!haveToBeSpectator) {				
+				manaAvatar-=manaCost;
+			}
+			setPlayerSpectator(haveToBeSpectator);
+			new MessageSpectator(pos, haveToBeSpectator);
+		}
+				
 		boolean enabledBeforeRedstone=enabled;
 		enabled = true;
 		for(EnumFacing dir : EnumFacing.VALUES) {// EnumFacing.HORIZONTALS
@@ -269,9 +237,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		fakePlayerHelper.updateHelper();
 	}
 	
-
-	
-   private void tabletToAvatar	( ItemStack stack) {
+    private void tabletToAvatar	( ItemStack stack) {
 	   if(getWorld().isRemote) return;
 	   IManaItem tablet=(IManaItem)stack.getItem();
 	   int manaActualTablet=tablet.getMana(stack);
@@ -292,8 +258,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	   
    }
    
-   
-   private void avatarToTablet ( ItemStack stack) {
+    private void avatarToTablet ( ItemStack stack) {
 	   if(getWorld().isRemote) return;	   
 	   if (manaAvatar<=0)return;	   
 	   int burst=TABLET_BURST;
@@ -314,6 +279,29 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	   world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), ModSounds.spreaderFire, SoundCategory.BLOCKS, 0.11F, 1F);
 	 
    }
+
+
+
+	@Override
+	public EnumFacing getAvatarFacing() {
+		return world.getBlockState(getPos()).getValue(BotaniaStateProps.CARDINALS);
+	}
+	
+	@Override
+	public BlockPos getPos() {
+		return super.getPos();
+	}
+
+	@Override
+	public int getBlockMetadata() {
+		//return EnumFacing.NORTH.getIndex();
+		return 0;
+	}
+   
+	@Override
+	public int getElapsedFunctionalTicks() {
+		return ticksElapsed;
+	}
 	
 	@Override
 	public ElvenAvatarItemHadler getInventory() {
@@ -330,8 +318,179 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
     	//TileSimpleInventory        	
     	return new ElvenAvatarItemHadler(this, true);        
     }
+
+	@Override
+	public boolean isOutputtingPower() {
+		return wandManaToTablet;
+	}
+
+	@Override
+	public EnumDyeColor getColor() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setColor(EnumDyeColor color) {
+		// TODO Auto-generated method stub		
+	}
+
+	@Override
+	public int getCurrentMana() {
+		return manaAvatar;
+	}
+
+	@Override
+	public boolean isFull() {
+		return manaAvatar >= MAX_MANA;
+	}
+
+	@Override
+	public void recieveMana(int mana) {
+		this.manaAvatar = Math.max(0, Math.min(MAX_MANA, this.manaAvatar + mana));
+		markDirty();		
+	}
+
+	@Override
+	public boolean canRecieveManaFromBursts() {
+		return getInventory().haveItem() && !(ItemStackType.isStackType( getInventory().getType0(),ItemStackType.Types.MANA));
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean penabled) {
+		 this.enabled=penabled;
+	}
 	
-	    	
+	@Override
+	public void readPacketNBT(NBTTagCompound par1nbtTagCompound) {
+		
+		super.readPacketNBT(par1nbtTagCompound.getCompoundTag("inventory"));//read inventory
+		enabled = par1nbtTagCompound.getBoolean(TAG_ENABLED);
+		ticksElapsed = par1nbtTagCompound.getInteger(TAG_TICKS_ELAPSED);
+		manaAvatar = par1nbtTagCompound.getInteger(TAG_MANA);		
+		wandManaToTablet= par1nbtTagCompound.getBoolean(TAG_WAND);
+		playerIsSpectator=par1nbtTagCompound.getBoolean(TAG_SPECT);
+		try {
+			this.playerUUID= UUID.fromString(par1nbtTagCompound.getString(TAG_UUID));
+		}catch (Exception e) {}
+        
+		if (world!=null && world.isRemote && this.playerUUID!=null)      	
+        	this.fakePlayerHelper.elvenFakePlayer.initClient( world,  pos, this,nAvatar );     
+        else
+        	setPlayerSpectator(playerIsSpectator);
+		this.fakePlayerHelper.readPacketNBT(par1nbtTagCompound);
+		
+		
+	}
+	
+	@Override
+	public void writePacketNBT(NBTTagCompound par1nbtTagCompound) {
+		par1nbtTagCompound.setTag("inventory", this.getInventory().serializeNBT());
+		par1nbtTagCompound.setBoolean(TAG_ENABLED, enabled);
+		par1nbtTagCompound.setInteger(TAG_TICKS_ELAPSED, ticksElapsed);
+		par1nbtTagCompound.setInteger(TAG_MANA, manaAvatar);
+		par1nbtTagCompound.setBoolean(TAG_WAND, wandManaToTablet);
+		par1nbtTagCompound.setBoolean(TAG_SPECT, playerIsSpectator);
+		
+		if (this.playerUUID!=null)
+			par1nbtTagCompound.setString(TAG_UUID, this.playerUUID.toString());
+		this.fakePlayerHelper.writePacketNBT(par1nbtTagCompound);
+	}
+
+	@Override
+	public void onItemStackHandlerChanged(ElvenAvatarItemHadler inventory,int slot) {
+				
+		if (getWorld().isRemote) return;				
+		if (slot==0) {
+			if (!ItemStackType.isStackType(getInventory().cacheType0,ItemStackType.Types.EYE))
+				inventoryToFakePlayer(); //from player to avatar
+			if (inventory.haveItem()) {
+				//secuencesAvatar.ActivateSecuence("RiseArm");
+				if(!this.secuencesAvatar.isActive())
+					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+				
+				boolean isValid= inventory.isItemValid0();
+				if (!isValid) this.fakePlayerHelper.dropItem(inventory.take0());
+				
+			}else {
+								
+				if (!resetBreak()) {
+					new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
+				}
+			}	
+		}
+		
+		if (!getWorld().isRemote) {
+			markDirty();
+			IBlockState state=getWorld().getBlockState(pos);
+			getWorld().notifyBlockUpdate(pos, state, state, 2);
+		}
+	}
+
+	public void setmana(int pmana) {
+		//to set from server message
+		manaAvatar=pmana;
+	}
+	
+	public boolean haveMana(){
+		return (manaAvatar>=200);
+	}
+	
+	public void onWanded(EntityPlayer player, ItemStack wand) {
+		if(player == null) return;
+		if(world.isRemote) return;
+			
+		wandManaToTablet = !wandManaToTablet;
+		world.playSound(null, player.posX, player.posY, player.posZ, ModSounds.ding, SoundCategory.PLAYERS, 0.11F, 1F);
+		//player.sendStatusMessage(new TextComponentString(TextFormatting.GREEN + "->Wand Change "+String.valueOf(wandManaToTablet)), false);
+		VanillaPacketDispatcher.dispatchTEToNearbyPlayers(world, pos);		
+	}
+
+
+	public void renderHUD(Minecraft mc, ScaledResolution res)
+	{
+		{
+			Block avatarBlock= getWorld().getBlockState(pos).getBlock();
+			//ItemStack avatarStack = new ItemStack(avatarBlock);
+			
+			ItemStack avatarStack = new ItemStack(avatarBlock, 1, this.getBlockMetadata());
+			String name = I18n.format("Elven Avatar");//+" "+String.valueOf(wandManaToTablet); 
+			int color = 0x4444FF;
+			
+			int manaInt=manaAvatar;
+			if (manaInt>MAX_MANA) manaInt=MAX_MANA;
+			HUDHandler.drawSimpleManaHUD(color, manaInt, MAX_MANA, name, res);
+			
+			int x = res.getScaledWidth() / 2 - 11;
+			int y = res.getScaledHeight() / 2 + 30;
+		
+			GlStateManager.enableBlend();
+			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			
+			mc.renderEngine.bindTexture(HUDHandler.manaBar);
+			
+			int u = wandManaToTablet ? 22 : 0;
+			vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(x, y, 0, u, 38, 22, 15);
+			GlStateManager.color(1F, 1F, 1F, 1F);
+			
+			
+			ItemStack tablet = new ItemStack(ModItems.manaTablet);
+			ItemManaTablet.setStackCreative(tablet);
+			
+			net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
+			mc.getRenderItem().renderItemAndEffectIntoGUI(tablet, x - 20, y);
+			mc.getRenderItem().renderItemAndEffectIntoGUI(avatarStack, x + 26, y);			
+			net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
+			
+			GlStateManager.disableLighting();
+			GlStateManager.disableBlend();
+		}
+	}
+
 	public class ElvenAvatarItemHadler extends SimpleItemStackHandler{
 		
 		private ArrayList<ItemStackType.Types>  cacheType0;
@@ -355,7 +514,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		}
 		
 		 @Override
-		 public void deserializeNBT(NBTTagCompound nbt) {
+	    public void deserializeNBT(NBTTagCompound nbt) {
 		 	super.deserializeNBT(nbt);
 		 	reloadCache() ;			
 		}
@@ -432,8 +591,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			}else lastTryToInsert[slot]=null;
 			return valid;
 		}
-		
-		
+			
 		public void set0(ItemStack stack) {
 			super.setStackInSlot(0, stack);
 		}
@@ -457,8 +615,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		public ItemStack get1() {
 			return getStackInSlot(1);
 		}
-		
-		
+				
 		public ItemStack take0() {
 			ItemStack t=getStackInSlot(0);
 			setStackInSlot(0, ItemStack.EMPTY);
@@ -484,141 +641,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			return(stack!=null && stack!=ItemStack.EMPTY);
 		}
 	
-
     }
-
 	
-	
-	public boolean haveMana(){
-		return (manaAvatar>=200);
-	}
-	
-	
-	@Override
-	public boolean isOutputtingPower() {
-		return wandManaToTablet;
-	}
-
-
-	@Override
-	public EnumDyeColor getColor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	@Override
-	public void setColor(EnumDyeColor color) {
-		// TODO Auto-generated method stub		
-	}
-
-	@Override
-	public int getCurrentMana() {
-		return manaAvatar;
-	}
-
-	@Override
-	public boolean isFull() {
-		return manaAvatar >= MAX_MANA;
-	}
-
-	@Override
-	public void recieveMana(int mana) {
-		this.manaAvatar = Math.max(0, Math.min(MAX_MANA, this.manaAvatar + mana));
-		markDirty();		
-	}
-	
-
-	@Override
-	public boolean canRecieveManaFromBursts() {
-		return getInventory().haveItem() && !(ItemStackType.isStackType( getInventory().getType0(),ItemStackType.Types.MANA));
-	}
-
-	@Override
-	public EnumFacing getAvatarFacing() {
-		return world.getBlockState(getPos()).getValue(BotaniaStateProps.CARDINALS);
-	}
-	
-	
-	@Override
-	public BlockPos getPos() {
-		return super.getPos();
-	}
-
-
-
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-
-	public void setEnabled(boolean penabled) {
-		 this.enabled=penabled;
-	}
-	
-	@Override
-	public void readPacketNBT(NBTTagCompound par1nbtTagCompound) {
-		
-		super.readPacketNBT(par1nbtTagCompound.getCompoundTag("inventory"));//read inventory
-		enabled = par1nbtTagCompound.getBoolean(TAG_ENABLED);
-		ticksElapsed = par1nbtTagCompound.getInteger(TAG_TICKS_ELAPSED);
-		manaAvatar = par1nbtTagCompound.getInteger(TAG_MANA);		
-		wandManaToTablet= par1nbtTagCompound.getBoolean(TAG_WAND);
-		this.fakePlayerHelper.readPacketNBT(par1nbtTagCompound);
-		
-		
-	}
-	
-	@Override
-	public void writePacketNBT(NBTTagCompound par1nbtTagCompound) {
-		par1nbtTagCompound.setTag("inventory", this.getInventory().serializeNBT());
-//		super.writePacketNBT(par1nbtTagCompound);//saves inventory
-		par1nbtTagCompound.setBoolean(TAG_ENABLED, enabled);
-		par1nbtTagCompound.setInteger(TAG_TICKS_ELAPSED, ticksElapsed);
-		par1nbtTagCompound.setInteger(TAG_MANA, manaAvatar);
-		par1nbtTagCompound.setBoolean(TAG_WAND, wandManaToTablet);
-		this.fakePlayerHelper.writePacketNBT(par1nbtTagCompound);
-	}
-	
-	public void setmana(int pmana) {
-		//to set from server message
-		manaAvatar=pmana;
-	}
-
-	@Override
-	public void onItemStackHandlerChanged(ElvenAvatarItemHadler inventory,int slot) {
-				
-		if (getWorld().isRemote) return;		
-		
-		if (slot==0) {
-			inventoryToFakePlayer(); //from player to avatar
-			if (inventory.haveItem()) {
-				//secuencesAvatar.ActivateSecuence("RiseArm");
-				if(!this.secuencesAvatar.isActive())
-					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
-				
-				boolean isValid= inventory.isItemValid0();
-				if (!isValid) this.fakePlayerHelper.dropItem(inventory.take0());
-				
-			}else {
-								
-				if (!resetBreak()) {
-					new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
-				}
-			}	
-		}
-		
-		if (!getWorld().isRemote) {
-			markDirty();
-			IBlockState state=getWorld().getBlockState(pos);
-			getWorld().notifyBlockUpdate(pos, state, state, 2);
-		}
-	}
-
-
-
-
-
 	
 }

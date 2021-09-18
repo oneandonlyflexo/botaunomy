@@ -21,6 +21,8 @@ public class ModSimpleNetworkChannel {
         INSTANCE.registerMessage(MessageMana.MessageManaHandler.class, MessageMana.class, nextID(), Side.CLIENT);
         INSTANCE.registerMessage(MessageInventoryEmpty.MessageInventoryEmptyHandler.class, MessageInventoryEmpty.class, nextID(), Side.CLIENT);
         INSTANCE.registerMessage(MessageMoveArm.MessageMoveArmHandler.class, MessageMoveArm.class, nextID(), Side.CLIENT);
-        INSTANCE.registerMessage(MessageEnabled.MessageEnabledHandler.class, MessageEnabled.class, nextID(), Side.CLIENT);
+        INSTANCE.registerMessage(MessageEnabled.MessageEnabledHandler.class, MessageEnabled.class, nextID(), Side.CLIENT);        //MessagePlayer
+        INSTANCE.registerMessage(MessagePlayer.MessagePlayerHandler.class, MessagePlayer.class, nextID(), Side.CLIENT);        
+        INSTANCE.registerMessage(MessageSpectator.MessageSpectatorHandler.class, MessageSpectator.class, nextID(), Side.CLIENT);
     }
 }

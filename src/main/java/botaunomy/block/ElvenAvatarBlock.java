@@ -12,7 +12,6 @@
 package botaunomy.block;
 
 import java.util.ArrayList;
-import java.util.UUID;
 import javax.annotation.Nonnull;
 import botaunomy.item.RodItem;
 import botaunomy.registry.BlockBase;
@@ -49,7 +48,7 @@ import vazkii.botania.common.lexicon.LexiconData;
 
 public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEntityRegisteredBlocked,IWandHUD  {
 	
-	private UUID placerUUID;
+	//private UUID placerUUID;
 
 	public static final String NAME = "elven_avatar";
 
@@ -230,13 +229,11 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 
 	@Override
 	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {	
+		/*
 		if (placer instanceof EntityPlayer){
 			placerUUID=EntityPlayer.getUUID(((EntityPlayer)placer).getGameProfile());
-		}else {
-			placerUUID = UUID.randomUUID();
-		}	
-		world.setBlockState(pos, state.withProperty(BotaniaStateProps.CARDINALS, placer.getHorizontalFacing().getOpposite()).withProperty(POWERED, false));
-		//TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);		
+		*/
+		world.setBlockState(pos, state.withProperty(BotaniaStateProps.CARDINALS, placer.getHorizontalFacing().getOpposite()).withProperty(POWERED, false));			
 	}
 
 	@Override
@@ -263,7 +260,7 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 	@Nonnull
 	@Override
 	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
-		return new TileElvenAvatar(placerUUID);
+		return new TileElvenAvatar();
 	}
 	
 	

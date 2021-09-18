@@ -9,7 +9,6 @@ package botaunomy;
 
 import org.apache.logging.log4j.Logger;
 import botaunomy.command.HandCommand;
-
 import botaunomy.proxy.CommonProxy;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -30,7 +29,7 @@ version = ModInfo.version,
 useMetadata = true,
 dependencies = "required-after:botania",
 acceptedMinecraftVersions = "[1.12,1.12.2]",
-acceptableRemoteVersions = "[0.3.3]")
+acceptableRemoteVersions = "[0.3.4]")
 public class Botaunomy
 {
 
@@ -64,5 +63,6 @@ public class Botaunomy
     {
       //logger.info("initalise FMLServerStartingEvent :" + NAME);
       event.registerServerCommand(new HandCommand());
+      //event.registerServerCommand(new TestCommand());
     }
 }

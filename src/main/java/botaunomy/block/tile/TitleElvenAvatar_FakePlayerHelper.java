@@ -2,7 +2,6 @@ package botaunomy.block.tile;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.UUID;
 import botaunomy.ItemStackType;
 import botaunomy.block.ElvenAvatarBlock;
 import botaunomy.config.Config;
@@ -32,20 +31,12 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import vazkii.botania.api.mana.IManaUsingItem;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
-//import net.minecraft.util.DamageSource;
-//import net.minecraft.inventory.EntityEquipmentSlot;
-//import net.minecraft.entity.SharedMonsterAttributes;
-//import net.minecraft.entity.ai.attributes.AttributeMap;
-//import net.minecraft.entity.ai.attributes.AttributeModifier;
-//import net.minecraft.entity.ai.attributes.IAttributeInstance;
-
 
 public class TitleElvenAvatar_FakePlayerHelper {
 
 	TileElvenAvatar avatar;
 
 	protected ElvenFakePlayerHandler elvenFakePlayer;
-	public final UUID uuid;
 
 	//private static final int USE_MANA_COST = 200;
 	//private static final int ROD_MANA_COST = 200;
@@ -60,7 +51,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	int entitieIndex=0;
 	private EmitResdstoneTimer emitResdstoneTimer=new EmitResdstoneTimer();
 	private WeakReference<FakePlayer>  getRefAndRetryInit() {
-		return  elvenFakePlayer.getRefAndRetryInit(getWorld(), uuid, getPos(), avatar);
+		return  elvenFakePlayer.getRefAndRetryInit(getWorld(),  getPos(), avatar);
 	}
 	
 	private class BreakingData{
@@ -203,10 +194,9 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	}
 	
 	
-	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar,UUID puuid) {
+	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar,int navatar) {
 		avatar=pavatar;
-		uuid=puuid;	
-		elvenFakePlayer=new ElvenFakePlayerHandler(avatar.getWorld(), puuid, avatar.getPos(),pavatar);
+		elvenFakePlayer=new ElvenFakePlayerHandler(avatar.getWorld(), avatar.getPos(),pavatar,navatar);
 	}
 	
 	public void inventoryToFakePlayer() {
@@ -245,9 +235,8 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	
 	
 	public void updateHelper() {		
+		
 		WeakReference<FakePlayer> player=getRefAndRetryInit();
-		
-		
 		if (player!=null) player.get().onUpdate();		
 		if (player!=null && breakingData.isBreaking ()) continueBreaking();				
 		else this.resetBreak();
@@ -461,9 +450,10 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 		WeakReference<FakePlayer> avatarPlayer = getRefAndRetryInit();
 		if (avatarPlayer == null) return false;	
+		if (avatarPlayer.get() == null) return false;
 		if (entity == null ||entity.isDead) return false;
-		boolean result = false;
-		
+
+		boolean result = false;		
 		ItemStack tool=elvenFakePlayer.stackMainHand();
 		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.SHEAR)) { // shears return true when entity ishearable is false, we must check before
 			if 	(entity instanceof net.minecraftforge.common.IShearable) {				
@@ -478,7 +468,8 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		if (ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.SHEAR)||ItemStackType.isStackType( elvenFakePlayer.stackMainHandType(),ItemStackType.Types.USE) ) {
 			
 			String previosName=elvenFakePlayer.stackMainHand().getUnlocalizedName();
-			EnumActionResult interaction = avatarPlayer.get().interactOn(entity, EnumHand.MAIN_HAND);
+			EnumActionResult interaction = avatarPlayer.get().interactOn(entity, EnumHand.MAIN_HAND);			
+
 			result=(interaction==EnumActionResult.SUCCESS);
 							//result =avatarPlayer.get().getHeldItemMainhand().interactWithEntity(avatarPlayer.get(), (EntityLivingBase) entity, EnumHand.MAIN_HAND);		
 							//result =avatarPlayer.get().getHeldItemMainhand().getItem().itemInteractionForEntity(avatarPlayer.get().getHeldItemMainhand(),avatarPlayer.get(),(EntityLivingBase) entity, EnumHand.MAIN_HAND);

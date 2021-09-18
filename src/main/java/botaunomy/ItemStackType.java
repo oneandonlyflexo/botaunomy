@@ -26,6 +26,7 @@ public class ItemStackType {
     	ROD_WILL,
     	ROD_WORK,
     	ROD_AVATAR,
+    	EYE,
     	BLOCK
       }
     
@@ -97,6 +98,9 @@ public class ItemStackType {
 					break;				
 				}
 		}			
+
+		if (s.toLowerCase().contains("eyeofender")||s.toLowerCase().contains("thirdeye"))
+			sal.add(Types.EYE);
 		
 		if (i.getItem() instanceof IAvatarWieldable)
 			sal.add(Types.ROD_AVATAR);

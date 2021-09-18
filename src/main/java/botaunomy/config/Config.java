@@ -37,6 +37,7 @@ public class Config {
     public static int useManaCost=160;
     public static int rodManaCost=160;
     public static int breakManaCost=160;
+    public static int mobSpawnerCostPertick=1;
     
 
     // Call this from CommonProxy.preInit(). It will create our config if it doesn't
@@ -71,7 +72,10 @@ public class Config {
         
         useManaCost=cfg.getInt("UseManaCost", CATEGORY_GENERAL, useManaCost, 50, 1000, "Mana cost each time avatar uses a tool on entity");
         rodManaCost=cfg.getInt("RodManaCost", CATEGORY_GENERAL, rodManaCost, 50, 1000, "Mana cost each time avatar uses rod on a block");
-        breakManaCost=cfg.getInt("BreakManaCost", CATEGORY_GENERAL, breakManaCost, 50, 1000, "Mana cost each time avatar try to break a block");
+        breakManaCost=cfg.getInt("BreakManaCost", CATEGORY_GENERAL, breakManaCost, 50, 1000, "Mana cost each time avatar try to break a block");        
+        mobSpawnerCostPertick=cfg.getInt("mobSpawnerCostPertick", CATEGORY_GENERAL, mobSpawnerCostPertick, 1, 10, "Mana cost per tick for ativate mob spawners");
+        
+        
         
         //is needed to check if had shear , by defaut returns always true.
         
