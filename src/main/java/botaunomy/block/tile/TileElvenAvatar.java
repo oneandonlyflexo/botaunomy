@@ -15,6 +15,7 @@
 //TODO
 //use item, without block or entity
 //Fake players are count for sleep.
+//if a chest block don't throw items, puts inside
 //Code to load a json model.
 
 
@@ -44,6 +45,8 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
@@ -60,8 +63,6 @@ import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.handler.ModSounds;
 import vazkii.botania.common.item.ItemManaTablet;
 import vazkii.botania.common.item.ModItems;
-
-
 
 public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile , ITickable ,IElvenAvatarItemHadlerChangedListener,IManaPool {
 	
@@ -82,29 +83,142 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	protected boolean enabled=true;
 	protected int ticksElapsed;
 	private int manaAvatar;
-
 	
-	private static int nAvatar;
+	public static int nAvatarServer;
+	public static int nAvatarClient;
 	private TitleElvenAvatar_FakePlayerHelper fakePlayerHelper;
-	private boolean wandManaToTablet=true;
-	public UUID playerUUID=null;
+	private boolean wandManaToTablet=false;
+	private UUID playerUUID=null;
 	public boolean playerIsSpectator=false;
 	
 	
 	public TileElvenAvatar() {	
 		super();
-		fakePlayerHelper= new TitleElvenAvatar_FakePlayerHelper(this,++nAvatar);
+		fakePlayerHelper= new TitleElvenAvatar_FakePlayerHelper(this);
 	}
-
-	 public void setUUID(UUID uuid) {
+	
+	public UUID getUUID() {
+		return playerUUID;
+	}
+	
+	public void setUUID(UUID uuid) {
+		playerUUID=uuid;
+	}
+	
+	public void setClientUUID(UUID uuid) {
 		 if (!world.isRemote)return;
 		 if (this.playerUUID==null) {
 			 this.playerUUID=uuid;
-			 this.fakePlayerHelper.elvenFakePlayer.initClient(world, pos, this, nAvatar);
+			 this.fakePlayerHelper.elvenFakePlayer.initClient(world, pos, this);
 		 }
 		 this.playerUUID=uuid;
 	}
 
+	public void onBreak() {
+		this.fakePlayerHelper.elvenFakePlayer.removePlayer(world, this);
+	}
+	
+	private TileEntityChest findChest() {
+		TileEntity chest=null; 
+		for(EnumFacing dir : EnumFacing.VALUES) {// EnumFacing.HORIZONTALS
+			chest =  world.getTileEntity(pos.offset(dir));
+			if (chest!=null && chest instanceof TileEntityChest) {
+				return (TileEntityChest)chest;
+			}
+		}
+		return null;
+	}
+	
+	private boolean insertInChest (ItemStack[] refItemStackIn, TileEntityChest chest) {
+
+		 ItemStack itemStack=null;
+		 ItemStack itemStackIn=refItemStackIn[0];
+		 
+		 for (int i = 0; i < chest.getSizeInventory(); ++i) {		     
+			 itemStack = chest.getStackInSlot(i);
+			 if (itemStack!=null && itemStack!=ItemStack.EMPTY) {
+				 int quantity=itemStack.getCount();
+				 int maxQuantity=itemStack.getMaxStackSize();
+			 
+				 if (itemStack.getItem().equals(itemStackIn.getItem())) {
+					 if (quantity<chest.getInventoryStackLimit()&& quantity<maxQuantity) {
+						 itemStack.setCount(quantity+1);
+						 if (itemStackIn.getCount()-1<=0) refItemStackIn[0]=ItemStack.EMPTY;
+						 else {
+							 itemStackIn.shrink(1);
+							 refItemStackIn[0]=itemStackIn;
+						 }
+						 chest.setInventorySlotContents(i, itemStack);
+						 return true;
+					 }					 
+				 }	 
+			 }
+		 }
+		 
+		 for (int i = 0; i < chest.getSizeInventory(); ++i) {	
+			 itemStack = chest.getStackInSlot(i);
+			 if (itemStack==null || itemStack==ItemStack.EMPTY) {
+				 itemStack=itemStackIn.copy();
+				 itemStack.setCount(1);
+				 chest.setInventorySlotContents(i, itemStack);
+				 if (itemStackIn.getCount()-1<=0) refItemStackIn[0]=ItemStack.EMPTY;
+				 else{
+					 itemStackIn.shrink(1);
+					 refItemStackIn[0]=itemStackIn;
+				 }
+				 return true;
+			 }
+		 }
+		 
+		 return false;
+	}
+	
+	private  void  dropOrInsert(ElvenAvatarItemHadler inventory) {
+		boolean insertado=false;
+		TileEntityChest chest= this.findChest();	
+		ItemStack itemStack=inventory.get0();
+		ItemStack[] refItemStack=new ItemStack[1];
+		refItemStack[0]=itemStack;
+		if (chest!=null) insertado=this.insertInChest(refItemStack, chest);
+		if (insertado) 
+			inventory.set0(refItemStack[0]);
+		else
+			this.fakePlayerHelper.dropItem(inventory.take0());
+	}
+	
+	@Override
+	public void onItemStackHandlerChanged(ElvenAvatarItemHadler inventory,int slot) {
+				
+		if (getWorld().isRemote) return;				
+		if (slot==0) {
+			if (!ItemStackType.isStackType(getInventory().cacheType0,ItemStackType.Types.EYE))
+				inventoryToFakePlayer(); //from player to avatar
+			if (inventory.haveItem()) {
+				//secuencesAvatar.ActivateSecuence("RiseArm");
+				if(!this.secuencesAvatar.isActive())
+					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
+				
+				boolean isValid= inventory.isItemValid0();
+				
+				if (!isValid) {
+					dropOrInsert(inventory);
+				}
+				
+			}else {
+								
+				if (!resetBreak()) {
+					new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
+				}
+			}	
+		}
+		
+		if (!getWorld().isRemote) {
+			markDirty();
+			IBlockState state=getWorld().getBlockState(pos);
+			getWorld().notifyBlockUpdate(pos, state, state, 2);
+		}
+	}
+	
 	public boolean isAvatarTick() {
 		return((ticksElapsed%AVATAR_TICK==0));
 	}
@@ -379,7 +493,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		}catch (Exception e) {}
         
 		if (world!=null && world.isRemote && this.playerUUID!=null)      	
-        	this.fakePlayerHelper.elvenFakePlayer.initClient( world,  pos, this,nAvatar );     
+        	this.fakePlayerHelper.elvenFakePlayer.initClient( world,  pos, this );     
         else
         	setPlayerSpectator(playerIsSpectator);
 		this.fakePlayerHelper.readPacketNBT(par1nbtTagCompound);
@@ -401,35 +515,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		this.fakePlayerHelper.writePacketNBT(par1nbtTagCompound);
 	}
 
-	@Override
-	public void onItemStackHandlerChanged(ElvenAvatarItemHadler inventory,int slot) {
-				
-		if (getWorld().isRemote) return;				
-		if (slot==0) {
-			if (!ItemStackType.isStackType(getInventory().cacheType0,ItemStackType.Types.EYE))
-				inventoryToFakePlayer(); //from player to avatar
-			if (inventory.haveItem()) {
-				//secuencesAvatar.ActivateSecuence("RiseArm");
-				if(!this.secuencesAvatar.isActive())
-					new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
-				
-				boolean isValid= inventory.isItemValid0();
-				if (!isValid) this.fakePlayerHelper.dropItem(inventory.take0());
-				
-			}else {
-								
-				if (!resetBreak()) {
-					new MessageMoveArm (getPos(),MessageMoveArm.DOWN_ARM);
-				}
-			}	
-		}
-		
-		if (!getWorld().isRemote) {
-			markDirty();
-			IBlockState state=getWorld().getBlockState(pos);
-			getWorld().notifyBlockUpdate(pos, state, state, 2);
-		}
-	}
+
 
 	public void setmana(int pmana) {
 		//to set from server message

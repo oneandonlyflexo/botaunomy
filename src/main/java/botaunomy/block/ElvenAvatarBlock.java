@@ -19,6 +19,7 @@ import botaunomy.registry.TileEntityRegisteredBlocked;
 import botaunomy.ModInfo;
 import botaunomy.block.tile.TileElvenAvatar;
 import botaunomy.ItemStackType;
+import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -35,6 +36,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -42,7 +44,6 @@ import vazkii.botania.api.lexicon.ILexiconable;
 import vazkii.botania.api.lexicon.LexiconEntry;
 import vazkii.botania.api.state.BotaniaStateProps;
 import vazkii.botania.api.wand.IWandHUD;
-import vazkii.botania.common.block.tile.TileSimpleInventory;
 import vazkii.botania.common.core.helper.InventoryHelper;
 import vazkii.botania.common.lexicon.LexiconData;
 
@@ -222,9 +223,22 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 
 	@Override
 	public void breakBlock(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
-		TileSimpleInventory inv = (TileSimpleInventory) world.getTileEntity(pos);
-		InventoryHelper.dropInventory(inv, world, state, pos);
-		super.breakBlock(world, pos, state);
+		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
+		InventoryHelper.dropInventory(avatar, world, state, pos);
+		super.breakBlock(world, pos, state);	
+	}
+	
+	@Override
+	public boolean removedByPlayer(IBlockState state,World worldIn, BlockPos pos, EntityPlayer player,boolean enableStats) {
+		TileElvenAvatar avatar = (TileElvenAvatar) worldIn.getTileEntity(pos);
+		if (avatar!=null) 
+			avatar.onBreak();
+		return super.removedByPlayer(state, worldIn, pos, player, enableStats);
+	}
+	
+	@Override
+	public void onBlockDestroyedByPlayer(World worldIn, BlockPos pos, IBlockState state) {		
+		super.onBlockDestroyedByPlayer(worldIn, pos, state);
 	}
 
 	@Override

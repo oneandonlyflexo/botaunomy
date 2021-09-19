@@ -50,6 +50,13 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	private List<Entity> entitiesList=null; //try to use with all detected
 	int entitieIndex=0;
 	private EmitResdstoneTimer emitResdstoneTimer=new EmitResdstoneTimer();
+	
+	
+	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar) {
+		avatar=pavatar;
+		elvenFakePlayer=new ElvenFakePlayerHandler(avatar.getWorld(), avatar.getPos(),pavatar);
+	}
+	
 	private WeakReference<FakePlayer>  getRefAndRetryInit() {
 		return  elvenFakePlayer.getRefAndRetryInit(getWorld(),  getPos(), avatar);
 	}
@@ -194,10 +201,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 	}
 	
 	
-	public TitleElvenAvatar_FakePlayerHelper(TileElvenAvatar pavatar,int navatar) {
-		avatar=pavatar;
-		elvenFakePlayer=new ElvenFakePlayerHandler(avatar.getWorld(), avatar.getPos(),pavatar,navatar);
-	}
+
 	
 	public void inventoryToFakePlayer() {
 		elvenFakePlayer.inventoryToFakePlayer(avatar);
@@ -233,7 +237,6 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		return avatar.getPos();
 	}
 	
-	
 	public void updateHelper() {		
 		
 		WeakReference<FakePlayer> player=getRefAndRetryInit();
@@ -243,7 +246,6 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 		emitResdstoneTimer.checkStopEmitRedstone();		
 	}
-		
     
 	public void sneak(boolean isSneaking) {
 		FakePlayer player=getRefAndRetryInit().get();

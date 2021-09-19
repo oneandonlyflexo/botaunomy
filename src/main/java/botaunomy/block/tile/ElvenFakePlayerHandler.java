@@ -3,6 +3,7 @@ package botaunomy.block.tile;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import com.google.common.collect.Multimap;
@@ -43,16 +44,14 @@ public class ElvenFakePlayerHandler  {
 	 EntityPlayer myElvenEntityPlayer=null; //Used to activate mob spawns, added to ws.playerEntities, server world and remote
 	 private ArrayList<ItemStackType.Types> typePlayerToolCache;
 	 TileElvenAvatar avatarParent;
-	 int nAvatar;
 
 	 
-	public ElvenFakePlayerHandler (World ws,  BlockPos pos,TileElvenAvatar avatar, int navatar ) {
+	public ElvenFakePlayerHandler (World ws,  BlockPos pos,TileElvenAvatar avatar ) {
 		MinecraftForge.EVENT_BUS.register(this);
-		nAvatar=navatar;
 		avatarParent=avatar;
 		if (ws==null)return;
 		if (!ws.isRemote) {
-			initServer( ws,  pos, avatar,nAvatar );		
+			initServer( ws,  pos, avatar );		
 		}
 
 	}
@@ -78,7 +77,7 @@ public class ElvenFakePlayerHandler  {
 	public WeakReference<FakePlayer>  getRefAndRetryInit (World ws,  BlockPos pos,TileElvenAvatar avatar )  {
 		if(ws.isRemote) return null;
 		if (refMyFakePlayer==null) return null;
-		if (refMyFakePlayer.get()==null) initServer(ws, pos, avatar,nAvatar);				
+		if (refMyFakePlayer.get()==null) initServer(ws, pos, avatar);				
 		return refMyFakePlayer;
 	}
 	
@@ -92,17 +91,22 @@ public class ElvenFakePlayerHandler  {
 
 	}
 	
-	public void initClient(World w, BlockPos pos,TileElvenAvatar avatar, int navatar )  {
+	public void initClient(World w, BlockPos pos,TileElvenAvatar avatar)  {
 		if (!w.isRemote) return;
-		UUID nameUuid=avatar.playerUUID;
+		UUID nameUuid=avatar.getUUID();
 		if (nameUuid==null) return;
 		if (myElvenEntityPlayer==null) {
-			GameProfile gameProfile=new GameProfile(nameUuid, "Bot"+navatar+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
-			myElvenEntityPlayer=new ElvenEntityPlayer(w, gameProfile);			
-			((IsetSpectator)myElvenEntityPlayer).setSpectator(avatar.playerIsSpectator);
-			initPlayerPos(myElvenEntityPlayer,pos,avatar);			
-			w.playerEntities.add(myElvenEntityPlayer);
-			//w.spawnEntity(myElvenEntityPlayer);
+			EntityPlayer f=findPlayer(w, nameUuid);
+				if (f==null) {
+				int navatar=TileElvenAvatar.nAvatarClient;
+				TileElvenAvatar.nAvatarClient++;
+				GameProfile gameProfile=new GameProfile(nameUuid, "ElvenAvt"+navatar+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
+				myElvenEntityPlayer=new ElvenEntityPlayer(w, gameProfile);			
+				((IsetSpectator)myElvenEntityPlayer).setSpectator(avatar.playerIsSpectator);
+				initPlayerPos(myElvenEntityPlayer,pos,avatar);			
+				w.playerEntities.add(myElvenEntityPlayer);
+				//w.spawnEntity(myElvenEntityPlayer);
+			}else myElvenEntityPlayer=f;
 		}
 
 	}
@@ -127,17 +131,39 @@ public class ElvenFakePlayerHandler  {
 		
 	}
 	
-	private void initServer(World ws, BlockPos pos,TileElvenAvatar avatar, int navatar )  { 
+	private EntityPlayer findPlayer(World w, UUID nameUuid) {
+		List<EntityPlayer> entities= w.playerEntities;
+		for (int i=0;i<entities.size();i++) {
+			if (entities.get(i).getGameProfile().getId().equals(nameUuid)) {
+				return entities.get(i);
+			}
+		}
+		return null;
+	}
+	
+	public void  removePlayer(World w, TileElvenAvatar avatar) {
+		if (w==null) return;
+		UUID nameUuid=avatar.getUUID();
+		List<EntityPlayer> entities= w.playerEntities;
+		for (int i=0;i<entities.size();i++) {
+			if (entities.get(i).getGameProfile().getId().equals(nameUuid)) {
+				entities.remove(i);
+				break;
+			}
+		}		
+	}
+	
+	private void initServer(World ws, BlockPos pos,TileElvenAvatar avatar)  { 
 		try {
 			
 			if (!(ws instanceof WorldServer)) return;
 			WorldServer wss=(WorldServer) ws;			
-			UUID nameUuid=avatar.playerUUID;
+			UUID nameUuid=avatar.getUUID();
 			if (nameUuid==null) { 
 				nameUuid=UUID.randomUUID();
-				avatar.playerUUID=nameUuid;
+				avatar.setUUID(nameUuid);
 			}		
-			GameProfile gameProfile=new GameProfile(nameUuid, "Bot"+navatar+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
+			GameProfile gameProfile=new GameProfile(nameUuid, "FkElvenAvt"+"_"+nameUuid.toString().substring(0,5));//ModInfo.modid
 			ElvenFakePlayer myFakePlayer=new ElvenFakePlayer(wss, gameProfile); //returns not espectator
 			refMyFakePlayer = new WeakReference<>(myFakePlayer);	
 			//fakePlayer = new WeakReference<FakePlayer>(FakePlayerFactory.get(ws, profile));
@@ -151,15 +177,21 @@ public class ElvenFakePlayerHandler  {
 			
 			
 			if (myElvenEntityPlayer==null) {
-				ElvenFakePlayer myElvenEntityPlayerCopy=new ElvenFakePlayer(wss, gameProfile);						
-				myElvenEntityPlayerCopy.copyFrom(myFakePlayer, false);
-				myElvenEntityPlayerCopy.setSpectator(avatar.playerIsSpectator);
-				initPlayerPos(myElvenEntityPlayerCopy,pos,avatar);			
-				setFakeConnection(myElvenEntityPlayerCopy);
-				myElvenEntityPlayerCopy.goToSleep();
-				ws.playerEntities.add(myElvenEntityPlayerCopy); //added as player
-				myElvenEntityPlayer=myElvenEntityPlayerCopy;
-				//w.spawnEntity(myElvenEntityPlayer);
+				EntityPlayer f=findPlayer(ws, nameUuid);
+				if (f==null) {
+					int navatar=TileElvenAvatar.nAvatarServer;
+					TileElvenAvatar.nAvatarServer++;
+					GameProfile gameProfileCopy=new GameProfile(nameUuid, "ElvenAvt"+navatar);//ModInfo.modid
+					ElvenFakePlayer myElvenEntityPlayerCopy=new ElvenFakePlayer(wss, gameProfileCopy);						
+					myElvenEntityPlayerCopy.copyFrom(myFakePlayer, false);
+					myElvenEntityPlayerCopy.setSpectator(avatar.playerIsSpectator);
+					initPlayerPos(myElvenEntityPlayerCopy,pos,avatar);			
+					setFakeConnection(myElvenEntityPlayerCopy);
+					myElvenEntityPlayerCopy.goToSleep();
+					ws.playerEntities.add(myElvenEntityPlayerCopy); //added as player
+					myElvenEntityPlayer=myElvenEntityPlayerCopy;
+					//w.spawnEntity(myElvenEntityPlayer);
+				}else myElvenEntityPlayer=f;
 			}	
 							
 			new MessagePlayer(pos,nameUuid); //activate client side.

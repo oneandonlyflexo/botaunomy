@@ -10,6 +10,7 @@ package botaunomy.proxy;
 import java.io.File;
 
 import botaunomy.*;
+import botaunomy.block.tile.TileElvenAvatar;
 import botaunomy.config.Config;
 import botaunomy.network.ModSimpleNetworkChannel;
 import botaunomy.registry.ModRegistry;
@@ -42,6 +43,8 @@ public abstract class CommonProxy {
 		ModDimensions.init();
 		
 		ModSimpleNetworkChannel.registerMessages();
+		
+
 				
 		
 	}

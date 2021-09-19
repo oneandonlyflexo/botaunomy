@@ -7,6 +7,7 @@
  ******************************************************************************/
 package botaunomy.proxy;
 
+import botaunomy.block.tile.TileElvenAvatar;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.*;
 
@@ -16,6 +17,7 @@ public class ServerProxy extends CommonProxy {
 	@Override
 	public void preInit(FMLPreInitializationEvent event) {
 		super.preInit(event);
+		TileElvenAvatar.nAvatarServer=0;
 	}
 
 	@Override

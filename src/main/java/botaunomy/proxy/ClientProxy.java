@@ -24,6 +24,7 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void preInit(FMLPreInitializationEvent event) {
 		super.preInit(event);
+		TileElvenAvatar.nAvatarClient=0;
 		initRenderers();
 	}
 

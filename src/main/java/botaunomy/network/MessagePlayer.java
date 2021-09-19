@@ -61,7 +61,7 @@ public class MessagePlayer implements IMessage  {
 			if (block instanceof ElvenAvatarBlock)
 			 if (world.isBlockLoaded(message.blockPos)) {
 				 TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(message.blockPos);
-				 avatar.setUUID(message.playerUuid);
+				 avatar.setClientUUID(message.playerUuid);
 			 }		
 	        return null;
 	    }
