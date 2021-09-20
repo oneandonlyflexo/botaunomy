@@ -19,7 +19,6 @@ import botaunomy.registry.TileEntityRegisteredBlocked;
 import botaunomy.ModInfo;
 import botaunomy.block.tile.TileElvenAvatar;
 import botaunomy.ItemStackType;
-import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -36,7 +35,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -93,8 +91,8 @@ public class ElvenAvatarBlock extends BlockBase implements ILexiconable,TileEnti
 		
 		TileElvenAvatar avatar = (TileElvenAvatar) world.getTileEntity(pos);
 		//int signal =(int) Math.floor(((double)avatar.getCurrentMana()/(double)TileElvenAvatar.MAX_MANA)*15d);
-		int signal =(int) Math.ceil(Math.floor(((double)avatar.getCurrentMana()/(double)TileElvenAvatar.MAX_MANA)*(15d*64d))/64d);
-		//returns 1 over 105.
+		int signal =(int) Math.ceil(Math.floor(((double)avatar.getCurrentMana()/(double)TileElvenAvatar.MAX_MANA)*(15d*TileElvenAvatar.MANA_MIN_DIVISION))/TileElvenAvatar.MANA_MIN_DIVISION);
+		//returns 1 over 208.
 		return signal;
 	}
 

@@ -99,7 +99,7 @@ public class ItemStackType {
 				}
 		}			
 
-		if (s.toLowerCase().contains("eyeofender")||s.toLowerCase().contains("thirdeye"))
+		if (!Config.disableFakePlayerAddedToWorld && (s.toLowerCase().contains("eyeofender")||s.toLowerCase().contains("thirdeye")))
 			sal.add(Types.EYE);
 		
 		if (i.getItem() instanceof IAvatarWieldable)

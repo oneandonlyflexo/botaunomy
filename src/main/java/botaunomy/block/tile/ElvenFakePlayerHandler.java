@@ -11,6 +11,7 @@ import com.mojang.authlib.GameProfile;
 
 import botaunomy.Botaunomy;
 import botaunomy.ItemStackType;
+import botaunomy.config.Config;
 import botaunomy.network.MessagePlayer;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -93,6 +94,8 @@ public class ElvenFakePlayerHandler  {
 	
 	public void initClient(World w, BlockPos pos,TileElvenAvatar avatar)  {
 		if (!w.isRemote) return;
+		if (!Config.disableFakePlayerAddedToWorld)return;
+		
 		UUID nameUuid=avatar.getUUID();
 		if (nameUuid==null) return;
 		if (myElvenEntityPlayer==null) {
@@ -176,7 +179,7 @@ public class ElvenFakePlayerHandler  {
 			myFakePlayer.rotationPitch=0;
 			
 			
-			if (myElvenEntityPlayer==null) {
+			if (myElvenEntityPlayer==null&& !Config.disableFakePlayerAddedToWorld) {
 				EntityPlayer f=findPlayer(ws, nameUuid);
 				if (f==null) {
 					int navatar=TileElvenAvatar.nAvatarServer;
@@ -187,14 +190,16 @@ public class ElvenFakePlayerHandler  {
 					myElvenEntityPlayerCopy.setSpectator(avatar.playerIsSpectator);
 					initPlayerPos(myElvenEntityPlayerCopy,pos,avatar);			
 					setFakeConnection(myElvenEntityPlayerCopy);
-					myElvenEntityPlayerCopy.goToSleep();
+					myElvenEntityPlayerCopy.goToSleep(Config.fakePlayersAreAsleep);
 					ws.playerEntities.add(myElvenEntityPlayerCopy); //added as player
 					myElvenEntityPlayer=myElvenEntityPlayerCopy;
 					//w.spawnEntity(myElvenEntityPlayer);
 				}else myElvenEntityPlayer=f;
+				
+				new MessagePlayer(pos,nameUuid); //activate client side.
 			}	
 							
-			new MessagePlayer(pos,nameUuid); //activate client side.
+			
 			
 			this.inventoryToFakePlayer(avatar);			
 			ItemStack fakeTablet=new ItemStack(new FakeTable());
@@ -241,11 +246,12 @@ public class ElvenFakePlayerHandler  {
 		 ItemStack stack=player.getHeldItem(EnumHand.MAIN_HAND);
 		 if (stack==null || stack== ItemStack.EMPTY) return;
 		 
-		 avatar.getInventory().set0(stack);
+		 if (stack.isEmpty()) avatar.getInventory().empty0();
+		 else 	avatar.getInventory().set0(stack);
+		 
 		 typePlayerToolCache=avatar.getInventory().getType0();	
 		 
 	}	
-	
 	
 	public void inventoryToFakePlayer(TileElvenAvatar avatar ) {
 		 FakePlayer player=refMyFakePlayer.get();
@@ -298,8 +304,7 @@ public class ElvenFakePlayerHandler  {
 		public void setSpectator (boolean value) {
 			spectatorValue=value;
 		}
-		
-		
+
 		@Override
 		public boolean getSpectator() {
 			return spectatorValue;
@@ -317,12 +322,8 @@ public class ElvenFakePlayerHandler  {
 
 	}
 
-	
 	public class ElvenFakePlayer extends FakePlayer implements IsetSpectator{
 		private boolean spectatorValue=false;
-		
-		
-
 		public ElvenFakePlayer(WorldServer world, GameProfile name) {
 			super(world, name);
 			this.onGround = true;
@@ -330,8 +331,8 @@ public class ElvenFakePlayerHandler  {
 			this.setSneaking(false);			
 		}
 		
-		public void  goToSleep() {
-			this.sleeping=true;
+		public void  goToSleep(boolean value) {
+			this.sleeping=value;
 		}
 		
 		@Override
@@ -370,7 +371,6 @@ public class ElvenFakePlayerHandler  {
 				
 	}
 
-	
 	private class FakeTable extends Item implements  IManaItem{
 
 		@Override

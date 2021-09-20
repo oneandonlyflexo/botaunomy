@@ -14,8 +14,6 @@
 
 //TODO
 //use item, without block or entity
-//Fake players are count for sleep.
-//if a chest block don't throw items, puts inside
 //Code to load a json model.
 
 
@@ -73,6 +71,9 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	public static final int MAX_MANA = 100000;// 1/5 ManaTablet
 	private static final int AVATAR_TICK=20;
 	private static final int TABLET_BURST = 5000;
+	public static final double MANA_MIN_DIVISION=32d; //division to set 1 to the comparator meter.
+	public static final double MIN_MANA=MAX_MANA/(MANA_MIN_DIVISION*15d);
+	
 	protected static final String TAG_ENABLED = "enabled";
 	protected static final String TAG_TICKS_ELAPSED = "ticksElapsed";
 	protected static final String TAG_MANA = "mana";
@@ -223,6 +224,11 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		return((ticksElapsed%AVATAR_TICK==0));
 	}
 	
+	
+	private boolean isHalfAvatarTick() {
+		return((ticksElapsed%AVATAR_TICK==AVATAR_TICK/2));
+	}
+	
 	public boolean haveItem() {
 		return getInventory().haveItem();
 	}
@@ -252,7 +258,8 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	public void setPlayerSpectator(boolean isSpectator) {
 		this.playerIsSpectator=isSpectator;
 		if (this.fakePlayerHelper.elvenFakePlayer.isSpectator()!=isSpectator) {
-			this.fakePlayerHelper.elvenFakePlayer.setSpectator(isSpectator);			
+			this.fakePlayerHelper.elvenFakePlayer.setSpectator(isSpectator);		
+			if (world!=null && !world.isRemote) new MessageSpectator(pos, isSpectator);
 		}
 	}
 	
@@ -275,12 +282,14 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			int manaCost=AVATAR_TICK*Config.mobSpawnerCostPertick;					
 			boolean haveMana=(manaAvatar>=manaCost);			
 			boolean haveEye=ItemStackType.isStackType(getInventory().cacheType0,ItemStackType.Types.EYE);
-			boolean haveToBeSpectator=!haveEye||!haveMana;
+			boolean haveToBeSpectator=!haveEye||!haveMana||!enabled;
 			if (!haveToBeSpectator) {				
 				manaAvatar-=manaCost;
+				markDirty();
+				new MessageMana(getPos(),manaAvatar);
 			}
 			setPlayerSpectator(haveToBeSpectator);
-			new MessageSpectator(pos, haveToBeSpectator);
+	
 		}
 				
 		boolean enabledBeforeRedstone=enabled;
@@ -523,7 +532,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	}
 	
 	public boolean haveMana(){
-		return (manaAvatar>=200);
+		return (manaAvatar>=MIN_MANA);
 	}
 	
 	public void onWanded(EntityPlayer player, ItemStack wand) {
@@ -614,32 +623,58 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 		protected int getStackLimit(int slot, ItemStack stack) {
 			return 1;
 		}
-
-		@Override
-		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {		
-			if (isItemValid(slot,stack))
-				return super.insertItem(slot, stack, simulate);
-			else return stack;
-		}
-
-		@Override
-		public ItemStack extractItem(int slot, int amount, boolean simulate) {
-			return super.extractItem(slot, amount, simulate);
-		}
-
+		
 		@Override
 		public void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
 			markDirty();
 			if (slot==1) cacheType1= ItemStackType.getTypeTool(super.getStackInSlot(1));
-			if (slot==0) cacheType0= ItemStackType.getTypeTool(super.getStackInSlot(0));
+			if (slot==0) {
+					cacheType0=ItemStackType.getTypeTool(super.getStackInSlot(0));
+					lastTryToInsert[slot]=null; 
+			}
 
 			for(int i=0;i<listIInventoryChangedListener.size();i++) {				
 				listIInventoryChangedListener.get(i).onItemStackHandlerChanged(this,slot);
 			}
 						
 		}
-		
+
+		@Override
+		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+			
+			if (!isHalfAvatarTick()) return stack; //waits update changes
+			if (slot==0 &&  get0()!=ItemStack.EMPTY) return stack;
+			if (slot==1 &&  get1()!=ItemStack.EMPTY) return stack;
+			
+			boolean valid;
+			valid=isItemValid(slot,stack);			
+			if (valid) {
+				lastTryToInsert[slot]=null;
+				return super.insertItem(slot, stack, simulate);
+			}
+			else {
+				lastTryToInsert[slot]=stack.copy();			
+				return stack;
+			}
+		}
+
+		@Override
+		public ItemStack extractItem(int slot, int amount, boolean simulate) {			
+			//if (!isHalfAvatarTick()) return ItemStack.EMPTY; //waits update changes
+			
+			boolean allow=false;
+			if (slot==1) allow=true;										
+			if (slot==0 && ItemStackType.isStackType(getType0(),ItemStackType.Types.MANA)) {
+				Item itemmana=getInventory().get0().getItem();
+				if (itemmana instanceof IManaDissolvable) allow=false; //spawned to world when used
+			}				 			
+			else allow=true;			
+			if (allow)return super.extractItem(slot, amount, simulate);
+				else return ItemStack.EMPTY;
+			
+		}
+	
 		@Override
 		public ItemStack getStackInSlot(int slot) {
 			return super.getStackInSlot(slot);
@@ -659,22 +694,23 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 			
 			if (lastTryToInsert[slot]!=null && stack.isItemEqual(lastTryToInsert[slot])) return false;
 			boolean valid_super=super.isItemValid(slot, stack);
-			boolean valid=false;
+			
+			boolean valid=true;
 			if (valid_super) {
-				ArrayList<ItemStackType.Types>  type=ItemStackType.getTypeTool(stack);
-				if (slot==0 && type.get(0)==ItemStackType.Types.NONE) valid=false;
-				else
-					if (slot==0 && ItemStackType.isStackType( type,ItemStackType.Types.BLOCK)) valid=false;
-					else
-						if (slot==0 && ItemStackType.isStackType( type,ItemStackType.Types.ROD_WORK)) valid=false;
-						else
-							if (slot==0) valid=true;
-							else
-								if (slot==1) valid=(ItemStackType.isStackType( type,ItemStackType.Types.ROD_WORK) && ItemStackType.isStackType( cacheType0,ItemStackType.Types.BREAK));					
+				ArrayList<ItemStackType.Types>  type=ItemStackType.getTypeTool(stack);	
+				
+				if (slot==1) valid=(ItemStackType.isStackType( type,ItemStackType.Types.ROD_WORK) && ItemStackType.isStackType( cacheType0,ItemStackType.Types.BREAK));
+				else {	
+					
+					if (type.get(0)==ItemStackType.Types.NONE) valid=false;
+					if (valid && ItemStackType.isStackType( type,ItemStackType.Types.BLOCK)) valid=false;
+					if (valid &&  ItemStackType.isStackType( type,ItemStackType.Types.ROD_WORK)) valid=false;
+					if (ItemStackType.isStackType( type ,ItemStackType.Types.MANA)) {
+						Item itemmana=stack.getItem();
+						if (itemmana instanceof IManaDissolvable && wandManaToTablet==false && isFull()) valid=false; //if idissolvabe and is full , return false
+					}					
+				}				
 			}
-			if (!valid) {
-				lastTryToInsert[slot]=stack.copy();
-			}else lastTryToInsert[slot]=null;
 			return valid;
 		}
 			

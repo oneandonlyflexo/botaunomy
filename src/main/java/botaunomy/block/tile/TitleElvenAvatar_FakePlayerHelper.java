@@ -383,6 +383,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 					checkManaIsEmpty();
 					emitResdstoneTimer.emitRedstone();
 					if(avatar.getWorld() instanceof WorldServer) {
+						this.fakePlayerToInventory();
 						if (!elvenFakePlayer.stackMainHand().isEmpty())
 							new MessageMoveArm (getPos(),MessageMoveArm.RISE_ARM);
 						else {
@@ -655,6 +656,7 @@ public class TitleElvenAvatar_FakePlayerHelper {
 		
 		if(interactedWithBlock) {
 				avatar.recieveMana(-Config.rodManaCost);
+				this.fakePlayerToInventory();
 				checkManaIsEmpty();
 				emitResdstoneTimer.emitRedstone();
 				if(avatar.getWorld() instanceof WorldServer) {
