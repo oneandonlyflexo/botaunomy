@@ -13,7 +13,7 @@
  ******************************************************************************/
 
 //TODO
-//use item, without block or entity
+//Have to charge disabled
 //Code to load a json model.
 
 

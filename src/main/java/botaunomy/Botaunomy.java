@@ -7,12 +7,27 @@
  ******************************************************************************/
 package botaunomy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.Logger;
 import botaunomy.command.HandCommand;
 import botaunomy.proxy.CommonProxy;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+
 
 /**
  * Botaunomy! The oddly spelled, slightly quirky addon to Botania. This mod is my first foray into modding since waaay
@@ -33,6 +48,9 @@ acceptableRemoteVersions = "[0.3.4]")
 public class Botaunomy
 {
 
+	private boolean isNight;
+	private boolean lastState = false;
+	
 	@Mod.Instance
 	public static Botaunomy instance;
 
@@ -56,6 +74,7 @@ public class Botaunomy
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent e) {
 		proxy.postInit(e);
+		MinecraftForge.EVENT_BUS.register(this);
 	}	
 	
     @Mod.EventHandler
@@ -63,6 +82,51 @@ public class Botaunomy
     {
       //logger.info("initalise FMLServerStartingEvent :" + NAME);
       event.registerServerCommand(new HandCommand());
-      //event.registerServerCommand(new TestCommand());
+    }
+    
+    @SubscribeEvent
+    public void worldTickEvent(WorldTickEvent event) {
+       if (!event.world.isRemote)
+       {
+    	   
+    	   // This is called every tick, do something every 20 ticks
+    	   if (event.world.getWorldTime() % 20L != 10 || event.phase != TickEvent.Phase.END)return;
+    	   boolean haveBeenChange=false;		
+           
+           if (event.world.getWorldTime()>=13000)        	   
+           {
+               if (event.world.playerEntities.size() > 0)
+               {
+            	   isNight=true;
+            	   if (isNight!=lastState) haveBeenChange=true;
+            	   lastState=isNight;
+            	   if (!haveBeenChange)return;
+            	   
+                   String message = "Its night:";
+                   WorldServer ws=(WorldServer) event.world;
+                   List<EntityPlayer> list= ws.playerEntities;
+                   List<EntityPlayer> listReal= new ArrayList<EntityPlayer>();
+                   
+                   int total=list.size();
+                   int asleep=0;
+                   for(EntityPlayer p:list) {
+                	   if (!(p instanceof FakePlayer)) listReal.add(p);                		                   	   
+                	   if (!p.isPlayerFullyAsleep()) asleep++;
+                   }
+                   
+                   message+=" Asleep; "+asleep+"/"+total;
+                   TextComponentString text = new TextComponentString(message);
+                   text.getStyle().setColor(TextFormatting.GREEN);
+                   
+                   for(EntityPlayer p:listReal) {                	  
+                	   p.sendMessage(text);
+                   }
+               }               
+           }else{ 
+        	   isNight=false;
+        	   if (isNight!=lastState) haveBeenChange=true;        	   
+        	   lastState=isNight;
+           }
+       }
     }
 }

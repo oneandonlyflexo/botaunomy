@@ -56,7 +56,7 @@ public class Config {
 		} finally {
 			if (cfg.hasChanged()) {
 				cfg.save();
-			}
+			} 
 		}
 	}
 
