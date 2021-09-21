@@ -13,7 +13,6 @@
  ******************************************************************************/
 
 //TODO
-//Have to charge disabled
 //Code to load a json model.
 
 
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import org.lwjgl.opengl.GL11;
 import botaunomy.ItemStackType;
+import botaunomy.ItemStackType.Types;
 import botaunomy.client.render.SecuencesAvatar;
 import botaunomy.config.Config;
 import botaunomy.model.ModelAvatar3;
@@ -82,7 +82,8 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	protected static final String TAG_SPECT = "spectator";
 
 	protected boolean enabled=true;
-	protected int ticksElapsed;
+	private int ticksElapsed; //do not enter if starts disabled
+	private int ticksElapsedDisabled=0;
 	private int manaAvatar;
 	
 	public static int nAvatarServer;
@@ -221,7 +222,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 	}
 	
 	public boolean isAvatarTick() {
-		return((ticksElapsed%AVATAR_TICK==0));
+		return((ticksElapsed%AVATAR_TICK==1));
 	}
 	
 	
@@ -319,27 +320,7 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 				if (ItemStackType.isStackType( type0,ItemStackType.Types.ROD_WILL)) {						  
 						this.fakePlayerHelper.rodRightClick(this);
 				}else 
-					
-					if (ItemStackType.isStackType( type0,ItemStackType.Types.MANA))  {
-						
-						ItemStack stackMana=getInventory().get0();
-						Item itemmana=stackMana.getItem();
-						EntityItem entityItemMana= new EntityItem(getWorld(),pos.getX(), pos.getY(), pos.getZ(), stackMana);
-						
-						if (itemmana instanceof IManaDissolvable) {
-							((IManaDissolvable)itemmana).onDissolveTick((IManaPool)this,stackMana, entityItemMana);						
-							stackMana=getInventory().get0();
-							if (stackMana.isEmpty()) {
-								getInventory().take0();
-							}
-							
-						}else 
-							if (stackMana.getItem() instanceof IManaItem){
-								if (wandManaToTablet) avatarToTablet(stackMana);
-								else tabletToAvatar(stackMana);
-							}
-					}
-					else //is a tool		
+					if (!chargeMana(type0))	//its a tool					
 					{
 						if (ItemStackType.isStackType( type0,ItemStackType.Types.BREAK))
 							if(ItemStackType.isStackType( type1,ItemStackType.Types.ROD_WORK)) 
@@ -349,15 +330,45 @@ public class TileElvenAvatar extends TileSimpleInventory implements IAvatarTile 
 						if (ItemStackType.isStackType( type0,ItemStackType.Types.USE)||ItemStackType.isStackType( type0,ItemStackType.Types.SHEAR)||ItemStackType.isStackType( type0,ItemStackType.Types.KILL)) fakePlayerHelper.beginUse();
 						if (ItemStackType.isStackType( type0,ItemStackType.Types.JUSTRC)) fakePlayerHelper.justRightClick(this);														
 					}
-						
 			}
+						
+		}
+		else {
+			if (ticksElapsedDisabled>AVATAR_TICK) {
+				ticksElapsedDisabled=0;
+				chargeMana(type0); //try to load mana even if disabled.
+			}else  ticksElapsedDisabled++;
 		}
 		
 		if(enabled) {
-			ticksElapsed++;			
+			ticksElapsed++;	//if not enabled time stop.
 		};
 		
 		fakePlayerHelper.updateHelper();
+	}
+	
+	private boolean chargeMana(ArrayList<Types> type0) {
+	
+		if (ItemStackType.isStackType( type0,ItemStackType.Types.MANA))  {			
+			ItemStack stackMana=getInventory().get0();
+			Item itemmana=stackMana.getItem();
+			EntityItem entityItemMana= new EntityItem(getWorld(),pos.getX(), pos.getY(), pos.getZ(), stackMana);
+			
+			if (itemmana instanceof IManaDissolvable) {
+				((IManaDissolvable)itemmana).onDissolveTick((IManaPool)this,stackMana, entityItemMana);						
+				stackMana=getInventory().get0();
+				if (stackMana.isEmpty()) {
+					getInventory().take0();
+				}
+				
+			}else 
+				if (stackMana.getItem() instanceof IManaItem){
+					if (wandManaToTablet) avatarToTablet(stackMana);
+					else tabletToAvatar(stackMana);
+				}
+			return true;
+		}
+		return false;
 	}
 	
     private void tabletToAvatar	( ItemStack stack) {
